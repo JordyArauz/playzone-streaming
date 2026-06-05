@@ -233,11 +233,42 @@ export default function App() {
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState('success');
   const [theme, setTheme] = useState(() => readStorage(STORAGE_KEYS.theme, 'dark'));
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [copiedRecordId, setCopiedRecordId] = useState(null);
 
   useEffect(() => {
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('[Supabase auth] Error obteniendo sesión:', error.message);
+        showNotice('No se pudo verificar la sesión.', 'error');
+      }
+      setSession(data?.session || null);
+      setAuthLoading(false);
+    }
+
+    loadSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+      setAuthLoading(false);
+      if (!currentSession) {
+        setRecords([]);
+        setAccounts([]);
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+
     async function loadClients() {
       const { data, error } = await supabase
         .from('clients')
@@ -255,9 +286,11 @@ export default function App() {
     }
 
     loadClients();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
+    if (!session) return;
+
     async function loadAccounts() {
       const { data, error } = await supabase
         .from('accounts')
@@ -275,7 +308,7 @@ export default function App() {
     }
 
     loadAccounts();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -471,6 +504,44 @@ export default function App() {
     setIsSidebarOpen(false);
   }
 
+  async function handleLogin(event) {
+    event.preventDefault();
+    const email = loginForm.email.trim();
+    const password = loginForm.password;
+
+    if (!email || !password) {
+      showNotice('Ingresa email y contraseña para iniciar sesión.', 'error');
+      return;
+    }
+
+    setLoginLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoginLoading(false);
+
+    if (error) {
+      console.error('[Supabase auth] Error iniciando sesión:', error.message);
+      showNotice('Email o contraseña incorrectos.', 'error');
+      return;
+    }
+
+    setLoginForm({ email: '', password: '' });
+    showNotice('Sesión iniciada correctamente.');
+  }
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('[Supabase auth] Error cerrando sesión:', error.message);
+      showNotice('No se pudo cerrar sesión.', 'error');
+      return;
+    }
+
+    setActiveTab('dashboard');
+    setIsSidebarOpen(false);
+    showNotice('Sesión cerrada.');
+  }
+
   async function handleRecordSubmit(event) {
     event.preventDefault();
     if (!recordForm.clientName.trim()) {
@@ -653,6 +724,67 @@ export default function App() {
     showNotice('Cuenta eliminada.');
   }
 
+  if (authLoading) {
+    return (
+      <div className="auth-page">
+        <section className="panel auth-panel">
+          <div className="auth-panel__brand">
+            <img src="/playzone-icon.svg" alt="PlayZone" />
+            <div>
+              <p className="eyebrow">PlayZone - Streaming</p>
+              <h1>Verificando sesión...</h1>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="auth-page">
+        <section className="panel auth-panel">
+          <div className="auth-panel__brand">
+            <img src="/playzone-icon.svg" alt="PlayZone" />
+            <div>
+              <p className="eyebrow">Acceso privado</p>
+              <h1>PlayZone - Streaming</h1>
+              <p className="hero__text">Inicia sesión para administrar cuentas, clientes, pagos y vencimientos.</p>
+            </div>
+          </div>
+
+          {notice && <div className={noticeType === 'error' ? 'notice notice--error error-message' : 'notice'}>{notice}</div>}
+
+          <form className="form-grid auth-form" onSubmit={handleLogin}>
+            <Field label="Email">
+              <input
+                type="email"
+                value={loginForm.email}
+                onChange={(event) => setLoginForm((form) => ({ ...form, email: event.target.value }))}
+                placeholder="correo@ejemplo.com"
+                autoComplete="email"
+              />
+            </Field>
+            <Field label="Contraseña">
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(event) => setLoginForm((form) => ({ ...form, password: event.target.value }))}
+                placeholder="Tu contraseña"
+                autoComplete="current-password"
+              />
+            </Field>
+            <div className="form-actions">
+              <button className="btn btn--dark" type="submit" disabled={loginLoading}>
+                {loginLoading ? 'Ingresando...' : 'Iniciar sesión'}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className={isSidebarCollapsed ? 'app-shell app-shell--collapsed' : 'app-shell'}>
       <button className="mobile-menu-btn" type="button" onClick={() => { setIsSidebarCollapsed(false); setIsSidebarOpen(true); }}>Menú</button>
@@ -695,6 +827,8 @@ export default function App() {
           </div>
         </div>
         <div className="hero__actions">
+          <span className="session-email">{session.user?.email}</span>
+          <button className="btn btn--ghost" type="button" onClick={handleSignOut}>Cerrar sesión</button>
           <button className="btn btn--dark" onClick={() => goToTab('records')}>👤 Registrar Cliente</button>
         </div>
       </header>

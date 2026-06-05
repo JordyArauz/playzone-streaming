@@ -100,6 +100,50 @@ button {
   max-width: 100%;
 }
 
+.auth-page {
+  width: min(520px, calc(100% - 28px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: grid;
+  place-items: center;
+}
+
+.auth-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-panel__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.auth-panel__brand img {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  flex: 0 0 auto;
+}
+
+.auth-panel__brand h1,
+.auth-panel__brand p {
+  margin: 0;
+}
+
+.auth-form {
+  grid-template-columns: 1fr;
+}
+
+.session-email {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .mobile-menu-btn,
 .sidebar__close,
 .sidebar-backdrop {
