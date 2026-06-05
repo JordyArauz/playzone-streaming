@@ -14,6 +14,7 @@ const accountTypes = ['Compartido', 'Privado'];
 const accountStatuses = ['Activa', 'Pendiente', 'Suspendida', 'Vencida'];
 const paymentMethods = ['QR', 'Efectivo'];
 const ACCOUNT_COLUMNS = 'id, platform, type, card_name, email, password, subscription_start, subscription_end, status, notes, created_at, updated_at';
+const CLIENT_COLUMNS = 'id, client_name, contact, platform, account_id, profile_name, pin, devices, start_date, end_date, price, payment_method, payment_status, status, notes, created_at, updated_at';
 const menuItems = [
   { id: 'dashboard', label: '📊 Dashboard', short: 'D' },
   { id: 'records', label: '👤 Registrar Cliente', short: 'C' },
@@ -170,9 +171,53 @@ function mapAccountToSupabase(form) {
   };
 }
 
+function mapClientFromSupabase(row) {
+  return {
+    id: row.id,
+    clientName: row.client_name || '',
+    contact: row.contact || '',
+    platform: normalizePlatformName(row.platform || 'Netflix'),
+    accountId: row.account_id || '',
+    profileName: row.profile_name || '',
+    pin: row.pin || '',
+    devices: row.devices || '',
+    startDate: row.start_date || '',
+    endDate: row.end_date || '',
+    price: row.price ?? '',
+    paymentMethod: row.payment_method || 'QR',
+    paymentStatus: row.payment_status || 'Pendiente',
+    status: row.status || 'Habilitado',
+    notes: row.notes || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapClientToSupabase(form) {
+  const platform = normalizePlatformName(form.platform);
+  const isChatGpt = isChatGPTPlus(platform);
+
+  return {
+    client_name: form.clientName.trim(),
+    contact: form.contact.trim(),
+    platform,
+    account_id: form.accountId || null,
+    profile_name: isChatGpt ? '' : form.profileName.trim(),
+    pin: isChatGpt ? '' : form.pin.trim(),
+    devices: form.devices.trim(),
+    start_date: form.startDate || null,
+    end_date: form.endDate || null,
+    price: form.price === '' ? null : Number(form.price),
+    payment_method: form.paymentMethod,
+    payment_status: form.paymentStatus,
+    status: form.status,
+    notes: form.notes.trim(),
+  };
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [records, setRecords] = useState(() => readStorage(STORAGE_KEYS.records, []));
+  const [records, setRecords] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [recordForm, setRecordForm] = useState(emptyRecordForm);
   const [accountForm, setAccountForm] = useState(emptyAccountForm);
@@ -193,8 +238,24 @@ export default function App() {
   const [copiedRecordId, setCopiedRecordId] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.records, JSON.stringify(records));
-  }, [records]);
+    async function loadClients() {
+      const { data, error } = await supabase
+        .from('clients')
+        .select(CLIENT_COLUMNS)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[Supabase clients] Error cargando clientes:', error.message);
+        showNotice('No se pudieron cargar los clientes desde Supabase.', 'error');
+        setRecords([]);
+        return;
+      }
+
+      setRecords((data || []).map(mapClientFromSupabase));
+    }
+
+    loadClients();
+  }, []);
 
   useEffect(() => {
     async function loadAccounts() {
@@ -410,7 +471,7 @@ export default function App() {
     setIsSidebarOpen(false);
   }
 
-  function handleRecordSubmit(event) {
+  async function handleRecordSubmit(event) {
     event.preventDefault();
     if (!recordForm.clientName.trim()) {
       showNotice('Agrega el nombre del cliente antes de guardar.', 'error');
@@ -429,24 +490,39 @@ export default function App() {
       return;
     }
 
-    const payload = {
-      ...recordForm,
-      platform: normalizePlatformName(recordForm.platform),
-      clientName: recordForm.clientName.trim(),
-      contact: recordForm.contact.trim(),
-      profileName: isRecordChatGPTPlus ? '' : recordForm.profileName.trim(),
-      pin: isRecordChatGPTPlus ? '' : recordForm.pin.trim(),
-      devices: recordForm.devices.trim(),
-      price: recordForm.price === '' ? '' : Number(recordForm.price),
-      notes: recordForm.notes.trim(),
-      updatedAt: new Date().toISOString(),
-    };
+    const payload = mapClientToSupabase(recordForm);
 
     if (editingRecordId) {
-      setRecords((items) => items.map((item) => (item.id === editingRecordId ? { ...item, ...payload } : item)));
+      const { data, error } = await supabase
+        .from('clients')
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq('id', editingRecordId)
+        .select(CLIENT_COLUMNS)
+        .single();
+
+      if (error) {
+        console.error('[Supabase clients] Error actualizando cliente:', error.message);
+        showNotice('No se pudo actualizar el cliente en Supabase.', 'error');
+        return;
+      }
+
+      const updatedRecord = mapClientFromSupabase(data);
+      setRecords((items) => items.map((item) => (item.id === editingRecordId ? updatedRecord : item)));
       showNotice('Registro actualizado correctamente.');
     } else {
-      setRecords((items) => [{ id: safeId(), createdAt: new Date().toISOString(), ...payload }, ...items]);
+      const { data, error } = await supabase
+        .from('clients')
+        .insert(payload)
+        .select(CLIENT_COLUMNS)
+        .single();
+
+      if (error) {
+        console.error('[Supabase clients] Error creando cliente:', error.message);
+        showNotice('No se pudo guardar el cliente en Supabase.', 'error');
+        return;
+      }
+
+      setRecords((items) => [mapClientFromSupabase(data), ...items]);
       showNotice('Registro guardado correctamente.');
     }
 
@@ -534,9 +610,21 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function deleteRecord(id) {
+  async function deleteRecord(id) {
     const ok = window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.');
     if (!ok) return;
+
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[Supabase clients] Error eliminando cliente:', error.message);
+      showNotice('No se pudo eliminar el cliente en Supabase.', 'error');
+      return;
+    }
+
     setRecords((items) => items.filter((item) => item.id !== id));
     showNotice('Registro eliminado.');
   }
