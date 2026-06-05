@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { supabase } from './lib/supabaseClient';
 
 const STORAGE_KEYS = {
   records: 'playzone_streaming_records_v1',
@@ -12,6 +13,7 @@ const paymentStatuses = ['Pagado', 'Pendiente'];
 const accountTypes = ['Compartido', 'Privado'];
 const accountStatuses = ['Activa', 'Pendiente', 'Suspendida', 'Vencida'];
 const paymentMethods = ['QR', 'Efectivo'];
+const ACCOUNT_COLUMNS = 'id, platform, type, card_name, email, password, subscription_start, subscription_end, status, notes, created_at, updated_at';
 const menuItems = [
   { id: 'dashboard', label: '📊 Dashboard', short: 'D' },
   { id: 'records', label: '👤 Registrar Cliente', short: 'C' },
@@ -136,10 +138,42 @@ function getAccountLabel(account) {
   return [platform, type].filter(Boolean).join(' ') + email;
 }
 
+function mapAccountFromSupabase(row) {
+  return {
+    id: row.id,
+    platform: row.platform,
+    type: row.type,
+    cardName: row.card_name || '',
+    email: row.email || '',
+    password: row.password || '',
+    subscriptionStart: row.subscription_start || '',
+    subscriptionEnd: row.subscription_end || '',
+    status: row.status,
+    notes: row.notes || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapAccountToSupabase(form) {
+  const platform = normalizePlatformName(form.platform);
+  return {
+    platform,
+    type: isChatGPTPlus(platform) ? 'Compartido' : form.type,
+    card_name: form.cardName.trim(),
+    email: form.email.trim(),
+    password: form.password.trim(),
+    subscription_start: form.subscriptionStart || null,
+    subscription_end: form.subscriptionEnd || null,
+    status: form.status,
+    notes: form.notes.trim(),
+  };
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [records, setRecords] = useState(() => readStorage(STORAGE_KEYS.records, []));
-  const [accounts, setAccounts] = useState(() => readStorage(STORAGE_KEYS.accounts, []));
+  const [accounts, setAccounts] = useState([]);
   const [recordForm, setRecordForm] = useState(emptyRecordForm);
   const [accountForm, setAccountForm] = useState(emptyAccountForm);
   const [editingRecordId, setEditingRecordId] = useState(null);
@@ -163,8 +197,24 @@ export default function App() {
   }, [records]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.accounts, JSON.stringify(accounts));
-  }, [accounts]);
+    async function loadAccounts() {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select(ACCOUNT_COLUMNS)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[Supabase accounts] Error cargando cuentas:', error.message);
+        showNotice('No se pudieron cargar las cuentas desde Supabase.', 'error');
+        setAccounts([]);
+        return;
+      }
+
+      setAccounts((data || []).map(mapAccountFromSupabase));
+    }
+
+    loadAccounts();
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -404,7 +454,7 @@ export default function App() {
     setEditingRecordId(null);
   }
 
-  function handleAccountSubmit(event) {
+  async function handleAccountSubmit(event) {
     event.preventDefault();
     if (!accountForm.email.trim() && !accountForm.cardName.trim()) {
       showNotice('Agrega al menos una tarjeta/nombre o email para identificar la cuenta.', 'error');
@@ -415,22 +465,39 @@ export default function App() {
       return;
     }
 
-    const payload = {
-      ...accountForm,
-      platform: normalizePlatformName(accountForm.platform),
-      type: isChatGPTPlus(accountForm.platform) ? 'Compartido' : accountForm.type,
-      cardName: accountForm.cardName.trim(),
-      email: accountForm.email.trim(),
-      password: accountForm.password.trim(),
-      notes: accountForm.notes.trim(),
-      updatedAt: new Date().toISOString(),
-    };
+    const payload = mapAccountToSupabase(accountForm);
 
     if (editingAccountId) {
-      setAccounts((items) => items.map((item) => (item.id === editingAccountId ? { ...item, ...payload } : item)));
+      const { data, error } = await supabase
+        .from('accounts')
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq('id', editingAccountId)
+        .select(ACCOUNT_COLUMNS)
+        .single();
+
+      if (error) {
+        console.error('[Supabase accounts] Error actualizando cuenta:', error.message);
+        showNotice('No se pudo actualizar la cuenta en Supabase.', 'error');
+        return;
+      }
+
+      const updatedAccount = mapAccountFromSupabase(data);
+      setAccounts((items) => items.map((item) => (item.id === editingAccountId ? updatedAccount : item)));
       showNotice('Cuenta actualizada correctamente.');
     } else {
-      setAccounts((items) => [{ id: safeId(), createdAt: new Date().toISOString(), ...payload }, ...items]);
+      const { data, error } = await supabase
+        .from('accounts')
+        .insert(payload)
+        .select(ACCOUNT_COLUMNS)
+        .single();
+
+      if (error) {
+        console.error('[Supabase accounts] Error creando cuenta:', error.message);
+        showNotice('No se pudo guardar la cuenta en Supabase.', 'error');
+        return;
+      }
+
+      setAccounts((items) => [mapAccountFromSupabase(data), ...items]);
       showNotice('Cuenta guardada correctamente.');
     }
 
@@ -474,13 +541,25 @@ export default function App() {
     showNotice('Registro eliminado.');
   }
 
-  function deleteAccount(id) {
+  async function deleteAccount(id) {
     const used = records.some((record) => record.accountId === id);
     const message = used
       ? 'Esta cuenta está asociada a uno o más registros. Si la eliminas, esos registros quedarán sin cuenta. ¿Continuar?'
       : '¿Eliminar esta cuenta?';
     const ok = window.confirm(message);
     if (!ok) return;
+
+    const { error } = await supabase
+      .from('accounts')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[Supabase accounts] Error eliminando cuenta:', error.message);
+      showNotice('No se pudo eliminar la cuenta en Supabase.', 'error');
+      return;
+    }
+
     setAccounts((items) => items.filter((item) => item.id !== id));
     setRecords((items) => items.map((record) => (record.accountId === id ? { ...record, accountId: '' } : record)));
     showNotice('Cuenta eliminada.');
