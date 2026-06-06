@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 
 const STORAGE_KEYS = {
@@ -261,6 +261,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [copiedRecordId, setCopiedRecordId] = useState(null);
+  const sidebarTouchStart = useRef(null);
 
   useEffect(() => {
     async function loadSession() {
@@ -363,6 +364,23 @@ export default function App() {
     return accounts.filter((account) => platformMatches(account.platform, recordForm.platform));
   }, [accounts, recordForm.platform]);
   const selectedAccountMatchesRecordPlatform = !recordForm.accountId || filteredAccountsForRecord.some((account) => account.id === recordForm.accountId);
+
+  function handleSidebarTouchStart(event) {
+    const touch = event.touches[0];
+    sidebarTouchStart.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleSidebarTouchEnd(event) {
+    if (!sidebarTouchStart.current || !window.matchMedia('(max-width: 1080px)').matches) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - sidebarTouchStart.current.x;
+    const deltaY = touch.clientY - sidebarTouchStart.current.y;
+    const isLeftSwipe = deltaX < -70 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4;
+
+    if (isLeftSwipe) setIsSidebarOpen(false);
+    sidebarTouchStart.current = null;
+  }
 
   const filteredRecords = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -815,8 +833,8 @@ export default function App() {
 
   return (
     <div className={isSidebarCollapsed ? 'app-shell app-shell--collapsed' : 'app-shell'}>
-      <button className="mobile-menu-btn" type="button" onClick={() => { setIsSidebarCollapsed(false); setIsSidebarOpen(true); }}>Menú</button>
-      <aside className={isSidebarOpen ? 'sidebar sidebar--open' : 'sidebar'} aria-label="Menú principal">
+      <button className="mobile-menu-btn" type="button" onClick={() => { setIsSidebarCollapsed(false); setIsSidebarOpen(true); }}>☰ Menú</button>
+      <aside className={isSidebarOpen ? 'sidebar sidebar--open' : 'sidebar'} aria-label="Menú principal" onTouchStart={handleSidebarTouchStart} onTouchEnd={handleSidebarTouchEnd}>
         <div className="sidebar__brand">
           <img src="/playzone-icon.svg" alt="PlayZone" />
           <div>
@@ -847,6 +865,10 @@ export default function App() {
       {isSidebarOpen && <button className="sidebar-backdrop" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} />}
       <div className="app-content">
         {activeTab === 'dashboard' && (
+        <>
+        <div className="dashboard-topbar">
+          <button className="btn btn--tiny btn--ghost dashboard-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
+        </div>
         <header className="hero">
         <div className="hero__brand">
           <img src="/playzone-icon.svg" alt="PlayZone" />
@@ -858,10 +880,10 @@ export default function App() {
         </div>
         <div className="hero__actions">
           <span className="session-email">{session.user?.email}</span>
-          <button className="btn btn--tiny btn--ghost dashboard-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
           <button className="btn btn--dark" onClick={() => goToTab('records')}>👤 Registrar Cliente</button>
         </div>
       </header>
+      </>
         )}
 
       {notice && <div className={noticeType === 'error' ? 'notice notice--error error-message' : 'notice'}>{notice}</div>}

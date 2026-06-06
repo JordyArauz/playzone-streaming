@@ -153,6 +153,22 @@ button {
   width: auto;
 }
 
+.dashboard-topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.dashboard-topbar .dashboard-signout {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.76rem;
+  box-shadow: none;
+}
+
 .mobile-menu-btn,
 .sidebar__close,
 .sidebar-backdrop {
