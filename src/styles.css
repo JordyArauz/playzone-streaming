@@ -1409,6 +1409,11 @@ textarea:focus {
     width: 100%;
   }
 
+  .dashboard-topbar .dashboard-signout {
+    width: fit-content;
+    justify-self: end;
+  }
+
   input,
   select,
   textarea {
