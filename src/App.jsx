@@ -262,6 +262,7 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [copiedRecordId, setCopiedRecordId] = useState(null);
   const sidebarTouchStart = useRef(null);
+  const [detailView, setDetailView] = useState(null);
 
   useEffect(() => {
     async function loadSession() {
@@ -442,15 +443,12 @@ export default function App() {
     const pending = enriched.filter((record) => record.computedStatus === 'Pendiente').length;
     const expired = enriched.filter((record) => record.computedStatus === 'Vencido').length;
     const near = enriched.filter((record) => record.daysLeft !== null && record.daysLeft >= 0 && record.daysLeft <= 7 && record.computedStatus !== 'Deshabilitado').length;
-    const month = new Date().getMonth();
-    const year = new Date().getFullYear();
     const monthIncome = records
-      .filter((record) => record.paymentStatus === 'Pagado')
-      .filter((record) => {
-        const baseDate = normalizeDate(record.startDate) || normalizeDate(record.endDate);
-        return baseDate && baseDate.getMonth() === month && baseDate.getFullYear() === year;
-      })
-      .reduce((sum, record) => sum + Number(record.price || 0), 0);
+      .filter((record) => String(record.paymentStatus || '').trim().toLowerCase() === 'pagado')
+      .reduce((sum, record) => {
+        const price = Number(record.price);
+        return sum + (Number.isFinite(price) ? price : 0);
+      }, 0);
 
     return { total: records.length, active, pending, expired, near, monthIncome };
   }, [records]);
@@ -474,6 +472,8 @@ export default function App() {
   const upcomingClientsCount = upcomingRecords.length;
   const upcomingAccountsCount = upcomingAccounts.length;
   const hasUpcomingDueDates = upcomingClientsCount + upcomingAccountsCount > 0;
+  const currentRecordDetail = detailView?.type === 'record' ? records.find((record) => record.id === detailView.id) : null;
+  const currentAccountDetail = detailView?.type === 'account' ? accounts.find((account) => account.id === detailView.id) : null;
 
   function showNotice(message, type = 'success') {
     setNotice(message);
@@ -539,8 +539,21 @@ export default function App() {
   }
 
   function goToTab(tab) {
+    if (tab !== 'dashboard') setDetailView(null);
     setActiveTab(tab);
     setIsSidebarOpen(false);
+  }
+
+  function viewRecord(record) {
+    setDetailView({ type: 'record', id: record.id });
+    setActiveTab('dashboard');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function viewAccount(account) {
+    setDetailView({ type: 'account', id: account.id });
+    setActiveTab('dashboard');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function handleLogin(event) {
@@ -692,6 +705,7 @@ export default function App() {
   }
 
   function editRecord(record) {
+    setDetailView(null);
     const platform = normalizePlatformName(record.platform);
     setRecordForm({
       ...emptyRecordForm,
@@ -708,6 +722,7 @@ export default function App() {
   }
 
   function editAccount(account) {
+    setDetailView(null);
     const platform = normalizePlatformName(account.platform);
     setAccountForm({
       ...emptyAccountForm,
@@ -921,7 +936,7 @@ export default function App() {
             ) : (
               <div className="cards-list">
                 {upcomingRecords.map((record) => (
-                  <RecordMiniCard key={record.id} record={record} account={accountById[record.accountId]} onEdit={() => editRecord(record)} />
+                  <RecordMiniCard key={record.id} record={record} account={accountById[record.accountId]} onView={() => viewRecord(record)} />
                 ))}
               </div>
             )}
@@ -940,7 +955,7 @@ export default function App() {
             ) : (
               <div className="cards-list">
                 {upcomingAccounts.map((account) => (
-                  <AccountMiniCard key={account.id} account={account} onEdit={() => editAccount(account)} />
+                  <AccountMiniCard key={account.id} account={account} onView={() => viewAccount(account)} />
                 ))}
               </div>
             )}
@@ -1247,6 +1262,22 @@ export default function App() {
         </main>
       )}
       </div>
+      {currentRecordDetail && (
+        <RecordDetailModal
+          record={currentRecordDetail}
+          account={accountById[currentRecordDetail.accountId]}
+          onClose={() => setDetailView(null)}
+          onEdit={() => editRecord(currentRecordDetail)}
+        />
+      )}
+      {currentAccountDetail && (
+        <AccountDetailModal
+          account={currentAccountDetail}
+          usedCount={records.filter((record) => record.accountId === currentAccountDetail.id).length}
+          onClose={() => setDetailView(null)}
+          onEdit={() => editAccount(currentAccountDetail)}
+        />
+      )}
     </div>
   );
 }
@@ -1305,7 +1336,83 @@ function EmptyState({ title, text }) {
   );
 }
 
-function RecordMiniCard({ record, account, onEdit }) {
+function DetailModal({ title, children, onClose, onEdit }) {
+  return (
+    <div className="detail-backdrop" role="presentation" onClick={onClose}>
+      <article className="detail-modal" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+        <div className="detail-modal__header">
+          <h2>{title}</h2>
+          <button className="btn btn--tiny btn--ghost" type="button" onClick={onClose}>Cerrar</button>
+        </div>
+        {children}
+        <div className="detail-modal__actions">
+          <button className="btn btn--ghost" type="button" onClick={onClose}>Volver</button>
+          <button className="btn btn--dark" type="button" onClick={onEdit}>Editar</button>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function DetailItem({ label, value }) {
+  const displayValue = value === 0 ? 0 : value || 'Sin dato';
+
+  return (
+    <>
+      <span>{label}</span>
+      <strong>{displayValue}</strong>
+    </>
+  );
+}
+
+function RecordDetailModal({ record, account, onClose, onEdit }) {
+  return (
+    <DetailModal title="Detalle del cliente" onClose={onClose} onEdit={onEdit}>
+      <div className="detail-title-row">
+        <div>
+          <h3>{record.clientName}</h3>
+          <p><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'}</p>
+        </div>
+        <Badge label={getRecordStatus(record)} />
+      </div>
+      <div className="detail-data">
+        <DetailItem label="Cuenta" value={<AccountLabel account={account} />} />
+        <DetailItem label="Contacto" value={record.contact} />
+        <DetailItem label="Dispositivos" value={record.devices} />
+        <DetailItem label="Inicio" value={formatDate(record.startDate)} />
+        <DetailItem label="Fin" value={formatDate(record.endDate)} />
+        {!isChatGPTPlus(record.platform) && <DetailItem label="PIN" value={record.pin} />}
+        <DetailItem label="Pago" value={formatMoney(record.price)} />
+        <DetailItem label="Estado de pago" value={record.paymentStatus} />
+      </div>
+      {record.notes && <p className="record-notes">{record.notes}</p>}
+    </DetailModal>
+  );
+}
+
+function AccountDetailModal({ account, usedCount, onClose, onEdit }) {
+  return (
+    <DetailModal title="Detalle de la cuenta" onClose={onClose} onEdit={onEdit}>
+      <div className="detail-title-row">
+        <div>
+          <h3><PlatformTag platform={account.platform} /></h3>
+          <p>{isChatGPTPlus(account.platform) ? account.cardName || 'Sin tarjeta/ref.' : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}</p>
+        </div>
+        <Badge label={account.status} />
+      </div>
+      <div className="detail-data">
+        <DetailItem label="Email" value={account.email} />
+        <DetailItem label="Contraseña" value={account.password ? 'Guardada' : 'Sin dato'} />
+        <DetailItem label="Inicio" value={formatDate(account.subscriptionStart)} />
+        <DetailItem label="Fin" value={formatDate(account.subscriptionEnd)} />
+        <DetailItem label="Clientes/perfiles" value={usedCount} />
+      </div>
+      {account.notes && <p className="record-notes">{account.notes}</p>}
+    </DetailModal>
+  );
+}
+
+function RecordMiniCard({ record, account, onView }) {
   const days = record.daysLeft;
   return (
     <article className={`mini-card ${getAlertClass(days)}`}>
@@ -1316,13 +1423,13 @@ function RecordMiniCard({ record, account, onEdit }) {
       </div>
       <div className="mini-card__side">
         <strong>{days === 0 ? 'Hoy' : `${days} días`}</strong>
-        <button className="btn btn--ghost" onClick={onEdit}>Editar</button>
+        <button className="btn btn--ghost" onClick={onView}>Ver</button>
       </div>
     </article>
   );
 }
 
-function AccountMiniCard({ account, onEdit }) {
+function AccountMiniCard({ account, onView }) {
   const days = account.daysLeft;
   return (
     <article className={`mini-card ${getAlertClass(days)}`}>
@@ -1333,7 +1440,7 @@ function AccountMiniCard({ account, onEdit }) {
       </div>
       <div className="mini-card__side">
         <strong>{days === 0 ? 'Hoy' : `${days} días`}</strong>
-        <button className="btn btn--ghost" onClick={onEdit}>Editar</button>
+        <button className="btn btn--ghost" onClick={onView}>Ver</button>
       </div>
     </article>
   );
