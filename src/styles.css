@@ -1098,9 +1098,20 @@ textarea:focus {
 }
 
 .detail-modal__actions {
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  display: grid;
+  justify-content: end;
+  justify-items: end;
   margin-top: 14px;
+}
+
+.detail-modal__actions .btn {
+  width: fit-content;
+}
+
+.detail-modal__actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 .account-grid {

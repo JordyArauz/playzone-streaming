@@ -1267,6 +1267,7 @@ export default function App() {
           record={currentRecordDetail}
           account={accountById[currentRecordDetail.accountId]}
           onClose={() => setDetailView(null)}
+          onWhatsApp={() => openWhatsApp(currentRecordDetail.contact)}
           onEdit={() => editRecord(currentRecordDetail)}
         />
       )}
@@ -1336,7 +1337,7 @@ function EmptyState({ title, text }) {
   );
 }
 
-function DetailModal({ title, children, onClose, onEdit }) {
+function DetailModal({ title, children, onClose, onWhatsApp, canUseWhatsApp = false, onEdit }) {
   return (
     <div className="detail-backdrop" role="presentation" onClick={onClose}>
       <article className="detail-modal" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
@@ -1347,6 +1348,11 @@ function DetailModal({ title, children, onClose, onEdit }) {
         {children}
         <div className="detail-modal__actions">
           <button className="btn btn--ghost" type="button" onClick={onClose}>Volver</button>
+          {onWhatsApp && (
+            <button className="btn btn--whatsapp" type="button" onClick={onWhatsApp} disabled={!canUseWhatsApp}>
+              WhatsApp
+            </button>
+          )}
           <button className="btn btn--dark" type="button" onClick={onEdit}>Editar</button>
         </div>
       </article>
@@ -1365,9 +1371,11 @@ function DetailItem({ label, value }) {
   );
 }
 
-function RecordDetailModal({ record, account, onClose, onEdit }) {
+function RecordDetailModal({ record, account, onClose, onWhatsApp, onEdit }) {
+  const canUseWhatsApp = validateBolivianContact(record.contact || '');
+
   return (
-    <DetailModal title="Detalle del cliente" onClose={onClose} onEdit={onEdit}>
+    <DetailModal title="Detalle del cliente" onClose={onClose} onWhatsApp={onWhatsApp} canUseWhatsApp={canUseWhatsApp} onEdit={onEdit}>
       <div className="detail-title-row">
         <div>
           <h3>{record.clientName}</h3>
