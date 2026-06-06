@@ -431,13 +431,19 @@ button {
 }
 
 .notice {
-  margin: 16px 0 0;
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 45;
+  width: min(420px, calc(100vw - 28px));
+  margin: 0;
   padding: 13px 16px;
   border-radius: 16px;
   background: #ecfdf3;
   color: #027a48;
   font-weight: 800;
   border: 1px solid #abefc6;
+  box-shadow: var(--shadow);
   overflow-wrap: anywhere;
 }
 
@@ -1116,6 +1122,14 @@ textarea:focus {
     box-shadow: var(--shadow);
   }
 
+  .dashboard-topbar {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 40;
+    margin: 0;
+  }
+
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
@@ -1247,6 +1261,13 @@ textarea:focus {
     display: none;
   }
 
+  .notice {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+
   .hero__actions .btn {
     width: 100%;
   }
@@ -1257,7 +1278,8 @@ textarea:focus {
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .dashboard-alert {
@@ -1270,8 +1292,17 @@ textarea:focus {
     white-space: normal;
   }
 
+  .stat-card span {
+    font-size: 0.74rem;
+  }
+
   .stat-card strong {
-    font-size: 1.7rem;
+    margin: 6px 0 2px;
+    font-size: 1.35rem;
+  }
+
+  .stat-card p {
+    font-size: 0.74rem;
   }
 
   .form-grid,
@@ -1331,6 +1362,10 @@ textarea:focus {
     padding: 14px;
   }
 
+  .stats-grid .stat-card {
+    padding: 12px;
+  }
+
   .section-title,
   .section-title.compact {
     display: grid;
@@ -1378,7 +1413,7 @@ textarea:focus {
 
 @media (max-width: 460px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .app-shell,
@@ -1392,6 +1427,10 @@ textarea:focus {
     left: 10px;
     right: auto;
     max-width: calc(100vw - 20px);
+  }
+
+  .dashboard-topbar {
+    right: 10px;
   }
 
   .sidebar {
