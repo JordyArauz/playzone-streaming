@@ -934,6 +934,74 @@ textarea:focus {
   color: var(--danger);
 }
 
+.platform-tag {
+  --platform-bg: var(--primary);
+  --platform-fg: #ffffff;
+  --platform-border: transparent;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 26px;
+  padding: 4px 10px;
+  border: 1px solid var(--platform-border);
+  border-radius: 999px;
+  background: var(--platform-bg);
+  color: var(--platform-fg);
+  font-size: 0.78rem;
+  font-weight: 950;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.platform-tag--netflix {
+  --platform-bg: linear-gradient(135deg, #e50914, #b20710);
+  --platform-fg: #ffffff;
+}
+
+.platform-tag--prime-video {
+  --platform-bg: linear-gradient(135deg, #00a8e1, #050505);
+  --platform-fg: #ffffff;
+}
+
+.platform-tag--chatgpt-plus {
+  --platform-bg: #74aa9c;
+  --platform-fg: #ffffff;
+}
+
+.platform-tag--disney {
+  --platform-bg: linear-gradient(135deg, #00b7c2, #063f54);
+  --platform-fg: #ffffff;
+}
+
+.platform-tag--hbo-max {
+  --platform-bg: #ffffff;
+  --platform-fg: #050505;
+  --platform-border: #050505;
+}
+
+:root[data-theme="dark"] .platform-tag--hbo-max {
+  --platform-bg: #050505;
+  --platform-fg: #ffffff;
+  --platform-border: #ffffff;
+}
+
+.platform-tag--crunchyroll {
+  --platform-bg: linear-gradient(135deg, #f47521, #0b0b0f);
+  --platform-fg: #ffffff;
+}
+
+.platform-tag--spotify {
+  --platform-bg: linear-gradient(135deg, #1db954, #050505);
+  --platform-fg: #ffffff;
+}
+
+.account-label-detail {
+  color: var(--muted);
+}
+
 .account-grid {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
@@ -1077,6 +1145,11 @@ textarea:focus {
   .sidebar__close {
     display: inline-flex;
     justify-content: center;
+  }
+
+  .sidebar-toggle,
+  .sidebar__close {
+    display: none;
   }
 
   .sidebar-backdrop {

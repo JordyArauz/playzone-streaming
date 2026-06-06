@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
   theme: 'playzone_streaming_theme_v1',
 };
 
-const platforms = ['Netflix', 'Prime Video', 'ChatGPT Plus', 'Disney+', 'Max', 'Spotify', 'YouTube Premium', 'Otro'];
+const platforms = ['Netflix', 'Prime Video', 'Disney+', 'HBO Max', 'ChatGPT Plus', 'Crunchyroll', 'Spotify'];
 const recordStatuses = ['Habilitado', 'Pendiente', 'Vencido', 'Deshabilitado'];
 const paymentStatuses = ['Pagado', 'Pendiente'];
 const accountTypes = ['Compartido', 'Privado'];
@@ -96,7 +96,20 @@ function formatMoney(value) {
 }
 
 function normalizePlatformName(platform) {
-  return platform === 'ChatGPT' ? 'ChatGPT Plus' : platform;
+  if (platform === 'ChatGPT') return 'ChatGPT Plus';
+  if (platform === 'Max') return 'HBO Max';
+  return platform;
+}
+
+function getPlatformClass(platform) {
+  const normalized = normalizePlatformName(platform);
+  const slug = normalized
+    .toLowerCase()
+    .replace(/\+/g, 'plus')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+  return `platform-tag platform-tag--${slug}`;
 }
 
 function isChatGPTPlus(platform) {
@@ -137,6 +150,14 @@ function getAccountLabel(account) {
   const type = account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
   const email = account.email ? ` · ${account.email}` : '';
   return [platform, type].filter(Boolean).join(' ') + email;
+}
+
+function getAccountDetailLabel(account) {
+  if (!account) return '';
+  const platform = normalizePlatformName(account.platform);
+  const type = account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
+  const identifier = account.email || account.cardName || '';
+  return [type, identifier].filter(Boolean).join(' - ');
 }
 
 function mapAccountFromSupabase(row) {
@@ -915,7 +936,7 @@ export default function App() {
                 {accounts.slice(0, 5).map((account) => (
                   <div className="summary-row" key={account.id}>
                     <div>
-                      <strong>{normalizePlatformName(account.platform)}</strong>
+                      <PlatformTag platform={account.platform} />
                       <span>{account.email || account.cardName || 'Sin identificador'}</span>
                     </div>
                     <Badge label={account.status} />
@@ -1100,8 +1121,8 @@ export default function App() {
                           <h3>{record.clientName}</h3>
                           <Badge label={getRecordStatus(record)} />
                         </div>
-                        <p className="muted">{normalizePlatformName(record.platform)} · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'} · {record.devices || 'Sin dispositivos'}</p>
-                        <p className="muted small">Cuenta: {getAccountLabel(accountById[record.accountId])}</p>
+                        <p className="muted"><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'} · {record.devices || 'Sin dispositivos'}</p>
+                        <p className="muted small">Cuenta: <AccountLabel account={accountById[record.accountId]} /></p>
                       </div>
                       <div className="record-money">
                         <strong>{formatMoney(record.price)}</strong>
@@ -1175,7 +1196,7 @@ export default function App() {
                     <article className="account-card" key={account.id}>
                       <div className="account-card__header">
                         <div>
-                          <h3>{normalizePlatformName(account.platform)}</h3>
+                          <h3><PlatformTag platform={account.platform} /></h3>
                           <p>{isChatGPTPlus(account.platform) ? account.cardName || 'Sin tarjeta/ref.' : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}</p>
                         </div>
                         <Badge label={account.status} />
@@ -1227,6 +1248,22 @@ function Badge({ label }) {
   return <span className={className}>{label}</span>;
 }
 
+function PlatformTag({ platform }) {
+  return <span className={getPlatformClass(platform)}>{normalizePlatformName(platform)}</span>;
+}
+
+function AccountLabel({ account }) {
+  if (!account) return 'Sin cuenta';
+  const detail = getAccountDetailLabel(account);
+
+  return (
+    <>
+      <PlatformTag platform={account.platform} />
+      {detail && <span className="account-label-detail"> {detail}</span>}
+    </>
+  );
+}
+
 function Field({ label, children, full = false, required = false }) {
   return (
     <label className={full ? 'field field--full' : 'field'}>
@@ -1252,8 +1289,8 @@ function RecordMiniCard({ record, account, onEdit }) {
     <article className={`mini-card ${getAlertClass(days)}`}>
       <div>
         <h3>{record.clientName}</h3>
-        <p>{normalizePlatformName(record.platform)} · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'}</p>
-        <span>{getAccountLabel(account)}</span>
+        <p><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'}</p>
+        <span><AccountLabel account={account} /></span>
       </div>
       <div className="mini-card__side">
         <strong>{days === 0 ? 'Hoy' : `${days} días`}</strong>
@@ -1268,7 +1305,7 @@ function AccountMiniCard({ account, onEdit }) {
   return (
     <article className={`mini-card ${getAlertClass(days)}`}>
       <div>
-        <h3>{normalizePlatformName(account.platform)}</h3>
+        <h3><PlatformTag platform={account.platform} /></h3>
         <p>{account.email || account.cardName || 'Sin identificador'}</p>
         <span>Fin: {formatDate(account.subscriptionEnd)}</span>
       </div>
