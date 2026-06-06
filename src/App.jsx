@@ -759,10 +759,14 @@ export default function App() {
             <Field label="Email">
               <input
                 type="email"
+                inputMode="email"
                 value={loginForm.email}
                 onChange={(event) => setLoginForm((form) => ({ ...form, email: event.target.value }))}
                 placeholder="correo@ejemplo.com"
                 autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </Field>
             <Field label="Contraseña">
@@ -772,6 +776,9 @@ export default function App() {
                 onChange={(event) => setLoginForm((form) => ({ ...form, password: event.target.value }))}
                 placeholder="Tu contraseña"
                 autoComplete="current-password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </Field>
             <div className="form-actions">
@@ -813,10 +820,12 @@ export default function App() {
           <button className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}>Claro</button>
           <button className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}>Oscuro</button>
         </div>
+        <button className="btn btn--ghost sidebar-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
         <button className="btn btn--ghost sidebar__close" type="button" onClick={() => setIsSidebarOpen(false)}>Cerrar</button>
       </aside>
       {isSidebarOpen && <button className="sidebar-backdrop" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} />}
       <div className="app-content">
+        {activeTab === 'dashboard' && (
         <header className="hero">
         <div className="hero__brand">
           <img src="/playzone-icon.svg" alt="PlayZone" />
@@ -828,10 +837,11 @@ export default function App() {
         </div>
         <div className="hero__actions">
           <span className="session-email">{session.user?.email}</span>
-          <button className="btn btn--ghost" type="button" onClick={handleSignOut}>Cerrar sesión</button>
+          <button className="btn btn--tiny btn--ghost dashboard-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
           <button className="btn btn--dark" onClick={() => goToTab('records')}>👤 Registrar Cliente</button>
         </div>
       </header>
+        )}
 
       {notice && <div className={noticeType === 'error' ? 'notice notice--error error-message' : 'notice'}>{notice}</div>}
 
@@ -1021,10 +1031,10 @@ export default function App() {
                 <input value={accountForm.cardName} onChange={(e) => updateAccountField('cardName', e.target.value)} placeholder="Ej: Jordy - Takenos" />
               </Field>
               <Field label="Email / usuario">
-                <input value={accountForm.email} onChange={(e) => updateAccountField('email', e.target.value)} placeholder="Ej: correo@gmail.com" />
+                <input type="email" inputMode="email" value={accountForm.email} onChange={(e) => updateAccountField('email', e.target.value)} placeholder="Ej: correo@gmail.com" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
               </Field>
               <Field label="Contraseña">
-                <input value={accountForm.password} onChange={(e) => updateAccountField('password', e.target.value)} placeholder="Puedes dejarlo vacío por seguridad" />
+                <input type="password" value={accountForm.password} onChange={(e) => updateAccountField('password', e.target.value)} placeholder="Puedes dejarlo vacío por seguridad" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
               </Field>
               <Field label="Fecha suscripción inicio">
                 <input type="date" value={accountForm.subscriptionStart} onChange={(e) => updateAccountField('subscriptionStart', e.target.value)} />

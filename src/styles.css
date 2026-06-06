@@ -144,6 +144,15 @@ button {
   overflow-wrap: anywhere;
 }
 
+.sidebar-signout {
+  width: 100%;
+  text-align: center;
+}
+
+.dashboard-signout {
+  width: auto;
+}
+
 .mobile-menu-btn,
 .sidebar__close,
 .sidebar-backdrop {
@@ -246,6 +255,11 @@ button {
   width: 100%;
   padding: 10px 4px;
   font-size: 0.76rem;
+}
+
+.app-shell--collapsed .sidebar-signout {
+  padding: 10px 4px;
+  font-size: 0.72rem;
 }
 
 .app-shell--collapsed .sidebar__nav,
@@ -1140,8 +1154,17 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  .session-email {
+    display: none;
+  }
+
   .hero__actions .btn {
     width: 100%;
+  }
+
+  .hero__actions .dashboard-signout {
+    width: fit-content;
+    justify-self: end;
   }
 
   .stats-grid {
