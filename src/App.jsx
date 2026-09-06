@@ -258,6 +258,13 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    password: '',
+    confirmPassword: '',
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [copiedRecordId, setCopiedRecordId] = useState(null);
@@ -277,9 +284,14 @@ export default function App() {
 
     loadSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession);
       setAuthLoading(false);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowPasswordChange(true);
+      }
+
       if (!currentSession) {
         setRecords([]);
         setAccounts([]);
@@ -580,6 +592,75 @@ export default function App() {
     showNotice('Sesión iniciada correctamente.');
   }
 
+  async function handlePasswordRecoveryRequest() {
+    const email = loginForm.email.trim();
+
+    if (!email) {
+      showNotice('Escribe primero tu email para enviarte el enlace de recuperación.', 'error');
+      return;
+    }
+
+    setRecoveryLoading(true);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+
+    setRecoveryLoading(false);
+
+    if (error) {
+      console.error('[Supabase auth] Error enviando recuperación:', error.message);
+      showNotice('No se pudo enviar el correo de recuperación.', 'error');
+      return;
+    }
+
+    showNotice('Te enviamos un enlace de recuperación al correo indicado.');
+  }
+
+  async function handlePasswordChange(event) {
+    event.preventDefault();
+
+    const password = passwordForm.password;
+    const confirmPassword = passwordForm.confirmPassword;
+
+    if (!password || !confirmPassword) {
+      showNotice('Completa los dos campos de contraseña.', 'error');
+      return;
+    }
+
+    if (password.length < 8) {
+      showNotice('La contraseña debe tener al menos 8 caracteres.', 'error');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showNotice('Las contraseñas no coinciden.', 'error');
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    setPasswordLoading(false);
+
+    if (error) {
+      console.error('[Supabase auth] Error cambiando contraseña:', error.message);
+      showNotice('No se pudo cambiar la contraseña.', 'error');
+      return;
+    }
+
+    setPasswordForm({
+      password: '',
+      confirmPassword: '',
+    });
+
+    setShowPasswordChange(false);
+    showNotice('Contraseña actualizada correctamente.');
+  }
+
   async function handleSignOut() {
     const { error } = await supabase.auth.signOut();
 
@@ -836,6 +917,14 @@ export default function App() {
               />
             </Field>
             <div className="form-actions">
+              <button
+                className="btn btn--ghost"
+                type="button"
+                onClick={handlePasswordRecoveryRequest}
+                disabled={recoveryLoading}
+              >
+                {recoveryLoading ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+              </button>
               <button className="btn btn--dark" type="submit" disabled={loginLoading}>
                 {loginLoading ? 'Ingresando...' : 'Iniciar sesión'}
               </button>
@@ -874,11 +963,63 @@ export default function App() {
           <button className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}>Claro</button>
           <button className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}>Oscuro</button>
         </div>
+        <button className="btn btn--ghost" type="button" onClick={() => setShowPasswordChange(true)}>Cambiar contraseña</button>
         <button className="btn btn--ghost sidebar-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
         <button className="btn btn--ghost sidebar__close" type="button" onClick={() => setIsSidebarOpen(false)}>Cerrar</button>
       </aside>
       {isSidebarOpen && <button className="sidebar-backdrop" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} />}
       <div className="app-content">
+        {showPasswordChange && (
+          <section className="panel form-panel">
+            <div className="section-title">
+              <div>
+                <h2>🔐 Cambiar contraseña</h2>
+                <p>Crea una nueva contraseña para ingresar a PlayZone.</p>
+              </div>
+            </div>
+
+            <form className="form-grid" onSubmit={handlePasswordChange}>
+              <Field label="Nueva contraseña">
+                <input
+                  type="password"
+                  value={passwordForm.password}
+                  onChange={(event) =>
+                    setPasswordForm((form) => ({
+                      ...form,
+                      password: event.target.value,
+                    }))
+                  }
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="new-password"
+                />
+              </Field>
+
+              <Field label="Confirmar contraseña">
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(event) =>
+                    setPasswordForm((form) => ({
+                      ...form,
+                      confirmPassword: event.target.value,
+                    }))
+                  }
+                  placeholder="Repite la contraseña"
+                  autoComplete="new-password"
+                />
+              </Field>
+
+              <div className="form-actions">
+                <button type="button" className="btn btn--ghost" onClick={() => setShowPasswordChange(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn--dark" disabled={passwordLoading}>
+                  {passwordLoading ? 'Guardando...' : 'Guardar nueva contraseña'}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
         {activeTab === 'dashboard' && (
         <>
         <div className="dashboard-topbar">
