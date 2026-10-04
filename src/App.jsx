@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
+import Planillas, { getInitialPlanillasDueItems } from './pages/Planillas';
+import ReminderCenter from './components/ReminderCenter';
+import { disablePlayZonePush } from './lib/pushNotifications';
+import netflixLogo from './assets/brands/netflix.jpg';
+import primeVideoLogo from './assets/brands/prime-video.webp';
+import hboMaxLogo from './assets/brands/hbo-max.png';
+import chatgptLogo from './assets/brands/chatgpt-plus.jpg';
 
 const STORAGE_KEYS = {
   records: 'playzone_streaming_records_v1',
@@ -7,56 +14,28 @@ const STORAGE_KEYS = {
   theme: 'playzone_streaming_theme_v1',
 };
 
-const platforms = ['Netflix', 'Prime Video', 'Disney+', 'HBO Max', 'ChatGPT Plus', 'Crunchyroll', 'Spotify'];
+const platforms = [
+  'Netflix',
+  'Prime Video',
+  'Disney+',
+  'HBO Max',
+  'ChatGPT Plus',
+  'Crunchyroll',
+  'Spotify',
+];
 const recordStatuses = ['Habilitado', 'Pendiente', 'Vencido', 'Deshabilitado'];
-const paymentStatuses = ['Pagado', 'Pendiente'];
 const accountTypes = ['Compartido', 'Privado'];
 const accountStatuses = ['Activa', 'Pendiente', 'Suspendida', 'Vencida'];
-const paymentMethods = ['QR', 'Efectivo'];
-const ACCOUNT_COLUMNS = 'id, platform, type, card_name, email, password, subscription_start, subscription_end, status, notes, created_at, updated_at';
-const CLIENT_COLUMNS = 'id, client_name, contact, platform, account_id, profile_name, pin, devices, start_date, end_date, price, payment_method, payment_status, status, notes, created_at, updated_at';
+const ACCOUNT_COLUMNS =
+  'id, platform, type, card_name, email, password, subscription_start, subscription_end, status, notes, location, created_at, updated_at';
+const CLIENT_COLUMNS =
+  'id, client_name, contact, platform, account_id, profile_name, pin, devices, start_date, end_date, price, payment_method, payment_status, status, notes, login_record, created_at, updated_at';
 const menuItems = [
   { id: 'dashboard', label: '📊 Dashboard', short: 'D' },
-  { id: 'records', label: '👤 Registrar Cliente', short: 'C' },
-  { id: 'accounts', label: '🔐 Cuentas', short: 'A' },
-  { id: 'accountList', label: '📋 Lista de Cuentas', short: 'L' },
-  { id: 'clientList', label: '👥 Lista de Clientes', short: 'P' },
+  { id: 'planillas', label: '📑 Planillas', short: 'P' },
+  { id: 'accountList', label: '📋 Lista de Cuentas', short: 'C' },
+  { id: 'clientList', label: '👥 Lista de Clientes', short: 'L' },
 ];
-
-const emptyRecordForm = {
-  clientName: '',
-  contact: '',
-  platform: 'Netflix',
-  accountId: '',
-  profileName: '',
-  pin: '',
-  devices: '',
-  startDate: '',
-  endDate: '',
-  price: '',
-  paymentMethod: 'QR',
-  paymentStatus: 'Pendiente',
-  status: 'Habilitado',
-  notes: '',
-};
-
-const emptyAccountForm = {
-  platform: 'Netflix',
-  type: 'Compartido',
-  cardName: '',
-  email: '',
-  password: '',
-  subscriptionStart: '',
-  subscriptionEnd: '',
-  status: 'Activa',
-  notes: '',
-};
-
-function safeId() {
-  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 function readStorage(key, fallback) {
   try {
     const stored = localStorage.getItem(key);
@@ -87,12 +66,31 @@ function formatDate(date) {
   if (!date) return 'Sin fecha';
   const parsed = normalizeDate(date);
   if (!parsed) return date;
-  return parsed.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return parsed.toLocaleDateString('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 function formatMoney(value) {
   const number = Number(value || 0);
   return `Bs ${number.toLocaleString('es-BO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+function formatActivityDate(value) {
+  if (!value) return 'Sin fecha';
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Sin fecha';
+  }
+
+  return date.toLocaleDateString('es-BO', {
+    day: '2-digit',
+    month: 'short',
+  });
 }
 
 function normalizePlatformName(platform) {
@@ -147,7 +145,8 @@ function getRecordStatus(record) {
 function getAccountLabel(account) {
   if (!account) return 'Sin cuenta';
   const platform = normalizePlatformName(account.platform);
-  const type = account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
+  const type =
+    account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
   const email = account.email ? ` · ${account.email}` : '';
   return [platform, type].filter(Boolean).join(' ') + email;
 }
@@ -155,7 +154,8 @@ function getAccountLabel(account) {
 function getAccountDetailLabel(account) {
   if (!account) return '';
   const platform = normalizePlatformName(account.platform);
-  const type = account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
+  const type =
+    account.type && !isChatGPTPlus(platform) ? `(${account.type})` : '';
   const identifier = account.email || account.cardName || '';
   return [type, identifier].filter(Boolean).join(' - ');
 }
@@ -172,23 +172,9 @@ function mapAccountFromSupabase(row) {
     subscriptionEnd: row.subscription_end || '',
     status: row.status,
     notes: row.notes || '',
+    location: row.location || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  };
-}
-
-function mapAccountToSupabase(form) {
-  const platform = normalizePlatformName(form.platform);
-  return {
-    platform,
-    type: isChatGPTPlus(platform) ? 'Compartido' : form.type,
-    card_name: form.cardName.trim(),
-    email: form.email.trim(),
-    password: form.password.trim(),
-    subscription_start: form.subscriptionStart || null,
-    subscription_end: form.subscriptionEnd || null,
-    status: form.status,
-    notes: form.notes.trim(),
   };
 }
 
@@ -207,6 +193,7 @@ function mapClientFromSupabase(row) {
     price: row.price ?? '',
     paymentMethod: row.payment_method || 'QR',
     paymentStatus: row.payment_status || 'Pendiente',
+    loginRecord: row.login_record || '',
     status: row.status || 'Habilitado',
     notes: row.notes || '',
     createdAt: row.created_at,
@@ -214,36 +201,19 @@ function mapClientFromSupabase(row) {
   };
 }
 
-function mapClientToSupabase(form) {
-  const platform = normalizePlatformName(form.platform);
-  const isChatGpt = isChatGPTPlus(platform);
-
-  return {
-    client_name: form.clientName.trim(),
-    contact: form.contact.trim(),
-    platform,
-    account_id: form.accountId || null,
-    profile_name: isChatGpt ? '' : form.profileName.trim(),
-    pin: isChatGpt ? '' : form.pin.trim(),
-    devices: form.devices.trim(),
-    start_date: form.startDate || null,
-    end_date: form.endDate || null,
-    price: form.price === '' ? null : Number(form.price),
-    payment_method: form.paymentMethod,
-    payment_status: form.paymentStatus,
-    status: form.status,
-    notes: form.notes.trim(),
-  };
-}
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [records, setRecords] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [recordForm, setRecordForm] = useState(emptyRecordForm);
-  const [accountForm, setAccountForm] = useState(emptyAccountForm);
-  const [editingRecordId, setEditingRecordId] = useState(null);
-  const [editingAccountId, setEditingAccountId] = useState(null);
+  // Estos indicadores evitan mostrar una Planilla vacía si falla la consulta.
+  const [remoteLoading, setRemoteLoading] = useState({
+    accounts: true,
+    clients: true,
+  });
+  const [remoteErrors, setRemoteErrors] = useState({
+    accounts: '',
+    clients: '',
+  });
   const [search, setSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState('Todas');
   const [statusFilter, setStatusFilter] = useState('Todos');
@@ -253,7 +223,9 @@ export default function App() {
   const [accountTypeFilter, setAccountTypeFilter] = useState('Todos');
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState('success');
-  const [theme, setTheme] = useState(() => readStorage(STORAGE_KEYS.theme, 'dark'));
+  const [theme, setTheme] = useState(() =>
+    readStorage(STORAGE_KEYS.theme, 'dark'),
+  );
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -270,12 +242,35 @@ export default function App() {
   const [copiedRecordId, setCopiedRecordId] = useState(null);
   const sidebarTouchStart = useRef(null);
   const [detailView, setDetailView] = useState(null);
+  const [reminderDraft, setReminderDraft] = useState(null);
+  const [planillasDueItems, setPlanillasDueItems] = useState([]);
+  useEffect(() => {
+    if (session?.user?.id)
+      setPlanillasDueItems(getInitialPlanillasDueItems(session.user.id));
+    else setPlanillasDueItems([]);
+  }, [session?.user?.id]);
+  useEffect(() => {
+    // La campana vuelve a calcular los avisos incluso si estás en Dashboard
+    // cuando llega medianoche en Bolivia.
+    if (!session?.user?.id || activeTab === 'planillas') return undefined;
+    const refresh = () =>
+      setPlanillasDueItems(getInitialPlanillasDueItems(session.user.id));
+    const timer = window.setInterval(refresh, 60000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [session?.user?.id, activeTab]);
 
   useEffect(() => {
     async function loadSession() {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
-        console.error('[Supabase auth] Error obteniendo sesión:', error.message);
+        console.error(
+          '[Supabase auth] Error obteniendo sesión:',
+          error.message,
+        );
         showNotice('No se pudo verificar la sesión.', 'error');
       }
       setSession(data?.session || null);
@@ -284,19 +279,23 @@ export default function App() {
 
     loadSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      setSession(currentSession);
-      setAuthLoading(false);
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        setAuthLoading(false);
 
-      if (event === 'PASSWORD_RECOVERY') {
-        setShowPasswordChange(true);
-      }
+        if (event === 'PASSWORD_RECOVERY') {
+          setShowPasswordChange(true);
+        }
 
-      if (!currentSession) {
-        setRecords([]);
-        setAccounts([]);
-      }
-    });
+        if (!currentSession) {
+          setRecords([]);
+          setAccounts([]);
+          setRemoteLoading({ accounts: true, clients: true });
+          setRemoteErrors({ accounts: '', clients: '' });
+        }
+      },
+    );
 
     return () => authListener.subscription.unsubscribe();
   }, []);
@@ -310,9 +309,17 @@ export default function App() {
         .select(CLIENT_COLUMNS)
         .order('created_at', { ascending: false });
 
+      setRemoteLoading((state) => ({ ...state, clients: false }));
+      setRemoteErrors((state) => ({ ...state, clients: error?.message || '' }));
       if (error) {
-        console.error('[Supabase clients] Error cargando clientes:', error.message);
-        showNotice('No se pudieron cargar los clientes desde Supabase.', 'error');
+        console.error(
+          '[Supabase clients] Error cargando clientes:',
+          error.message,
+        );
+        showNotice(
+          'No se pudieron cargar los clientes desde Supabase.',
+          'error',
+        );
         setRecords([]);
         return;
       }
@@ -321,6 +328,15 @@ export default function App() {
     }
 
     loadClients();
+    const onFocus = () => {
+      if (!document.hidden) loadClients();
+    };
+    window.addEventListener('focus', onFocus);
+    const timer = window.setInterval(onFocus, 120000);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.clearInterval(timer);
+    };
   }, [session]);
 
   useEffect(() => {
@@ -332,9 +348,20 @@ export default function App() {
         .select(ACCOUNT_COLUMNS)
         .order('created_at', { ascending: false });
 
+      setRemoteLoading((state) => ({ ...state, accounts: false }));
+      setRemoteErrors((state) => ({
+        ...state,
+        accounts: error?.message || '',
+      }));
       if (error) {
-        console.error('[Supabase accounts] Error cargando cuentas:', error.message);
-        showNotice('No se pudieron cargar las cuentas desde Supabase.', 'error');
+        console.error(
+          '[Supabase accounts] Error cargando cuentas:',
+          error.message,
+        );
+        showNotice(
+          'No se pudieron cargar las cuentas desde Supabase.',
+          'error',
+        );
         setAccounts([]);
         return;
       }
@@ -343,6 +370,15 @@ export default function App() {
     }
 
     loadAccounts();
+    const onFocus = () => {
+      if (!document.hidden) loadAccounts();
+    };
+    window.addEventListener('focus', onFocus);
+    const timer = window.setInterval(onFocus, 120000);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.clearInterval(timer);
+    };
   }, [session]);
 
   useEffect(() => {
@@ -372,24 +408,23 @@ export default function App() {
     }, {});
   }, [accounts]);
 
-  const isRecordChatGPTPlus = isChatGPTPlus(recordForm.platform);
-  const filteredAccountsForRecord = useMemo(() => {
-    return accounts.filter((account) => platformMatches(account.platform, recordForm.platform));
-  }, [accounts, recordForm.platform]);
-  const selectedAccountMatchesRecordPlatform = !recordForm.accountId || filteredAccountsForRecord.some((account) => account.id === recordForm.accountId);
-
   function handleSidebarTouchStart(event) {
     const touch = event.touches[0];
     sidebarTouchStart.current = { x: touch.clientX, y: touch.clientY };
   }
 
   function handleSidebarTouchEnd(event) {
-    if (!sidebarTouchStart.current || !window.matchMedia('(max-width: 1080px)').matches) return;
+    if (
+      !sidebarTouchStart.current ||
+      !window.matchMedia('(max-width: 1080px)').matches
+    )
+      return;
 
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - sidebarTouchStart.current.x;
     const deltaY = touch.clientY - sidebarTouchStart.current.y;
-    const isLeftSwipe = deltaX < -70 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4;
+    const isLeftSwipe =
+      deltaX < -70 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4;
 
     if (isLeftSwipe) setIsSidebarOpen(false);
     sidebarTouchStart.current = null;
@@ -413,17 +448,33 @@ export default function App() {
           .join(' ')
           .toLowerCase();
         const matchesSearch = !term || text.includes(term);
-        const matchesPlatform = platformFilter === 'Todas' || platformMatches(record.platform, platformFilter);
-        const matchesStatus = statusFilter === 'Todos' || getRecordStatus(record) === statusFilter;
-        const matchesAccount = clientAccountFilter === 'Todas' || record.accountId === clientAccountFilter;
-        return matchesSearch && matchesPlatform && matchesStatus && matchesAccount;
+        const matchesPlatform =
+          platformFilter === 'Todas' ||
+          platformMatches(record.platform, platformFilter);
+        const matchesStatus =
+          statusFilter === 'Todos' || getRecordStatus(record) === statusFilter;
+        const matchesAccount =
+          clientAccountFilter === 'Todas' ||
+          record.accountId === clientAccountFilter;
+        return (
+          matchesSearch && matchesPlatform && matchesStatus && matchesAccount
+        );
       })
       .sort((a, b) => {
-        const dateA = normalizeDate(a.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
-        const dateB = normalizeDate(b.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const dateA =
+          normalizeDate(a.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const dateB =
+          normalizeDate(b.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
         return dateA - dateB;
       });
-  }, [records, search, platformFilter, statusFilter, clientAccountFilter, accountById]);
+  }, [
+    records,
+    search,
+    platformFilter,
+    statusFilter,
+    clientAccountFilter,
+    accountById,
+  ]);
 
   const filteredAccounts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -440,43 +491,196 @@ export default function App() {
           .join(' ')
           .toLowerCase();
         const matchesSearch = !term || text.includes(term);
-        const matchesPlatform = accountPlatformFilter === 'Todas' || platformMatches(account.platform, accountPlatformFilter);
-        const normalizedType = isChatGPTPlus(account.platform) ? 'Compartido' : account.type;
-        const matchesType = accountTypeFilter === 'Todos' || normalizedType === accountTypeFilter;
-        const matchesStatus = accountStatusFilter === 'Todos' || account.status === accountStatusFilter;
+        const matchesPlatform =
+          accountPlatformFilter === 'Todas' ||
+          platformMatches(account.platform, accountPlatformFilter);
+        const normalizedType = isChatGPTPlus(account.platform)
+          ? 'Compartido'
+          : account.type;
+        const matchesType =
+          accountTypeFilter === 'Todos' || normalizedType === accountTypeFilter;
+        const matchesStatus =
+          accountStatusFilter === 'Todos' ||
+          account.status === accountStatusFilter;
         return matchesSearch && matchesPlatform && matchesType && matchesStatus;
       })
-      .sort((a, b) => normalizePlatformName(a.platform).localeCompare(normalizePlatformName(b.platform), 'es'));
-  }, [accounts, search, accountPlatformFilter, accountStatusFilter, accountTypeFilter]);
+      .sort((a, b) =>
+        normalizePlatformName(a.platform).localeCompare(
+          normalizePlatformName(b.platform),
+          'es',
+        ),
+      );
+  }, [
+    accounts,
+    search,
+    accountPlatformFilter,
+    accountStatusFilter,
+    accountTypeFilter,
+  ]);
 
   const stats = useMemo(() => {
-    const enriched = records.map((record) => ({ ...record, computedStatus: getRecordStatus(record), daysLeft: daysBetweenToday(record.endDate) }));
-    const active = enriched.filter((record) => record.computedStatus === 'Habilitado').length;
-    const pending = enriched.filter((record) => record.computedStatus === 'Pendiente').length;
-    const expired = enriched.filter((record) => record.computedStatus === 'Vencido').length;
-    const near = enriched.filter((record) => record.daysLeft !== null && record.daysLeft >= 0 && record.daysLeft <= 7 && record.computedStatus !== 'Deshabilitado').length;
+    const enriched = records.map((record) => ({
+      ...record,
+      computedStatus: getRecordStatus(record),
+      daysLeft: daysBetweenToday(record.endDate),
+    }));
+    const active = enriched.filter(
+      (record) => record.computedStatus === 'Habilitado',
+    ).length;
+    const pending = enriched.filter(
+      (record) => record.computedStatus === 'Pendiente',
+    ).length;
+    const expired = enriched.filter(
+      (record) => record.computedStatus === 'Vencido',
+    ).length;
+    const near = enriched.filter(
+      (record) =>
+        record.daysLeft !== null &&
+        record.daysLeft >= 0 &&
+        record.daysLeft <= 7 &&
+        record.computedStatus !== 'Deshabilitado',
+    ).length;
     const monthIncome = records
-      .filter((record) => String(record.paymentStatus || '').trim().toLowerCase() === 'pagado')
+      .filter(
+        (record) =>
+          String(record.paymentStatus || '')
+            .trim()
+            .toLowerCase() === 'pagado',
+      )
       .reduce((sum, record) => {
         const price = Number(record.price);
         return sum + (Number.isFinite(price) ? price : 0);
       }, 0);
 
-    return { total: records.length, active, pending, expired, near, monthIncome };
+    return {
+      total: records.length,
+      active,
+      pending,
+      expired,
+      near,
+      monthIncome,
+    };
   }, [records]);
+
+  const dashboardPlatforms = useMemo(() => {
+    const definitions = [
+      {
+        key: 'netflix-private',
+        logo: netflixLogo,
+        label: 'Netflix Privado',
+        short: 'N',
+        className: 'dashboard-platform-card--netflix-private',
+        count: accounts.filter(
+          (account) =>
+            normalizePlatformName(account.platform) === 'Netflix' &&
+            account.type === 'Privado',
+        ).length,
+      },
+      {
+        key: 'netflix-shared',
+        logo: netflixLogo,
+        label: 'Netflix Compartido',
+        short: 'N',
+        className: 'dashboard-platform-card--netflix-shared',
+        count: accounts.filter(
+          (account) =>
+            normalizePlatformName(account.platform) === 'Netflix' &&
+            account.type === 'Compartido',
+        ).length,
+      },
+      {
+        key: 'prime-video',
+        logo: primeVideoLogo,
+        label: 'Prime Video',
+        short: '▶',
+        className: 'dashboard-platform-card--prime',
+        count: accounts.filter(
+          (account) =>
+            normalizePlatformName(account.platform) === 'Prime Video',
+        ).length,
+      },
+      {
+        key: 'hbo-max',
+        logo: hboMaxLogo,
+        label: 'HBO Max',
+        short: 'H',
+        className: 'dashboard-platform-card--hbo',
+        count: accounts.filter(
+          (account) => normalizePlatformName(account.platform) === 'HBO Max',
+        ).length,
+      },
+      {
+        key: 'chatgpt-plus',
+        logo: chatgptLogo,
+        label: 'ChatGPT Plus',
+        short: '✦',
+        className: 'dashboard-platform-card--chatgpt',
+        count: accounts.filter(
+          (account) =>
+            normalizePlatformName(account.platform) === 'ChatGPT Plus',
+        ).length,
+      },
+    ];
+
+    return definitions;
+  }, [accounts]);
+
+  const recentActivity = useMemo(() => {
+    const accountActivity = accounts.map((account) => ({
+      id: `account-${account.id}`,
+      kind: 'Cuenta',
+      title: normalizePlatformName(account.platform),
+      detail: account.email || account.cardName || 'Cuenta registrada',
+      createdAt: account.createdAt,
+      sortValue: new Date(account.createdAt || 0).getTime(),
+    }));
+
+    const clientActivity = records.map((record) => ({
+      id: `client-${record.id}`,
+      kind: 'Cliente',
+      title: record.clientName || 'Cliente',
+      detail: normalizePlatformName(record.platform),
+      createdAt: record.createdAt,
+      sortValue: new Date(record.createdAt || 0).getTime(),
+    }));
+
+    return [...accountActivity, ...clientActivity]
+      .sort((a, b) => b.sortValue - a.sortValue)
+      .slice(0, 5);
+  }, [accounts, records]);
 
   const upcomingRecords = useMemo(() => {
     return records
-      .map((record) => ({ ...record, daysLeft: daysBetweenToday(record.endDate), computedStatus: getRecordStatus(record) }))
-      .filter((record) => record.daysLeft !== null && record.daysLeft >= 0 && record.daysLeft <= 2 && record.computedStatus !== 'Deshabilitado')
+      .map((record) => ({
+        ...record,
+        daysLeft: daysBetweenToday(record.endDate),
+        computedStatus: getRecordStatus(record),
+      }))
+      .filter(
+        (record) =>
+          record.daysLeft !== null &&
+          record.daysLeft >= 0 &&
+          record.daysLeft <= 2 &&
+          record.computedStatus !== 'Deshabilitado',
+      )
       .sort((a, b) => a.daysLeft - b.daysLeft)
       .slice(0, 6);
   }, [records]);
 
   const upcomingAccounts = useMemo(() => {
     return accounts
-      .map((account) => ({ ...account, daysLeft: daysBetweenToday(account.subscriptionEnd) }))
-      .filter((account) => account.daysLeft !== null && account.daysLeft >= 0 && account.daysLeft <= 2 && account.status !== 'Vencida' && account.status !== 'Suspendida')
+      .map((account) => ({
+        ...account,
+        daysLeft: daysBetweenToday(account.subscriptionEnd),
+      }))
+      .filter(
+        (account) =>
+          account.daysLeft !== null &&
+          account.daysLeft >= 0 &&
+          account.daysLeft <= 2 &&
+          account.status !== 'Vencida' &&
+          account.status !== 'Suspendida',
+      )
       .sort((a, b) => a.daysLeft - b.daysLeft)
       .slice(0, 6);
   }, [accounts]);
@@ -484,8 +688,40 @@ export default function App() {
   const upcomingClientsCount = upcomingRecords.length;
   const upcomingAccountsCount = upcomingAccounts.length;
   const hasUpcomingDueDates = upcomingClientsCount + upcomingAccountsCount > 0;
-  const currentRecordDetail = detailView?.type === 'record' ? records.find((record) => record.id === detailView.id) : null;
-  const currentAccountDetail = detailView?.type === 'account' ? accounts.find((account) => account.id === detailView.id) : null;
+  const currentRecordDetail =
+    detailView?.type === 'record'
+      ? records.find((record) => record.id === detailView.id)
+      : null;
+  const currentAccountDetail =
+    detailView?.type === 'account'
+      ? accounts.find((account) => account.id === detailView.id)
+      : null;
+
+  async function reloadPlanillas() {
+    if (!session?.user?.id)
+      throw new Error('La sesión terminó. Inicia sesión nuevamente.');
+    const [accountReply, clientReply] = await Promise.all([
+      supabase
+        .from('accounts')
+        .select(ACCOUNT_COLUMNS)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('clients')
+        .select(CLIENT_COLUMNS)
+        .order('created_at', { ascending: false }),
+    ]);
+    if (accountReply.error || clientReply.error) {
+      const message = accountReply.error?.message || clientReply.error?.message;
+      setRemoteErrors({
+        accounts: accountReply.error?.message || '',
+        clients: clientReply.error?.message || '',
+      });
+      throw new Error(`No se pudo comprobar el guardado: ${message}`);
+    }
+    setAccounts((accountReply.data || []).map(mapAccountFromSupabase));
+    setRecords((clientReply.data || []).map(mapClientFromSupabase));
+    setRemoteErrors({ accounts: '', clients: '' });
+  }
 
   function showNotice(message, type = 'success') {
     setNotice(message);
@@ -495,7 +731,10 @@ export default function App() {
   async function copyContact(record) {
     const contact = record.contact?.trim() || '';
     if (!validateBolivianContact(contact)) {
-      showNotice('Este cliente no tiene un número boliviano válido para copiar.', 'error');
+      showNotice(
+        'Este cliente no tiene un número boliviano válido para copiar.',
+        'error',
+      );
       return;
     }
 
@@ -524,36 +763,34 @@ export default function App() {
   function openWhatsApp(contact) {
     const cleanContact = contact?.trim() || '';
     if (!validateBolivianContact(cleanContact)) return;
-    window.open(`https://wa.me/591${cleanContact}`, '_blank', 'noopener,noreferrer');
-  }
-
-  function updateRecordField(field, value) {
-    setRecordForm((form) => {
-      if (field === 'platform') {
-        const nextForm = { ...form, platform: value, accountId: '' };
-        if (isChatGPTPlus(value)) {
-          nextForm.profileName = '';
-          nextForm.pin = '';
-        }
-        return nextForm;
-      }
-      return { ...form, [field]: value };
-    });
-  }
-
-  function updateAccountField(field, value) {
-    setAccountForm((form) => {
-      if (field === 'platform' && isChatGPTPlus(value)) {
-        return { ...form, platform: value, type: 'Compartido' };
-      }
-      return { ...form, [field]: value };
-    });
+    window.open(
+      `https://wa.me/591${cleanContact}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
   }
 
   function goToTab(tab) {
-    if (tab !== 'dashboard') setDetailView(null);
+    if (tab !== 'dashboard') {
+      setDetailView(null);
+    }
+
+    // Cambiar de sección no altera si el menú está visible u oculto.
     setActiveTab(tab);
     setIsSidebarOpen(false);
+  }
+
+  function collapseSidebarMenu() {
+    setIsSidebarCollapsed(true);
+    setIsSidebarOpen(false);
+  }
+
+  function openSidebarMenu() {
+    setIsSidebarCollapsed(false);
+
+    if (window.matchMedia('(max-width: 1080px)').matches) {
+      setIsSidebarOpen(true);
+    }
   }
 
   function viewRecord(record) {
@@ -579,7 +816,10 @@ export default function App() {
     }
 
     setLoginLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setLoginLoading(false);
 
     if (error) {
@@ -596,7 +836,10 @@ export default function App() {
     const email = loginForm.email.trim();
 
     if (!email) {
-      showNotice('Escribe primero tu email para enviarte el enlace de recuperación.', 'error');
+      showNotice(
+        'Escribe primero tu email para enviarte el enlace de recuperación.',
+        'error',
+      );
       return;
     }
 
@@ -609,7 +852,10 @@ export default function App() {
     setRecoveryLoading(false);
 
     if (error) {
-      console.error('[Supabase auth] Error enviando recuperación:', error.message);
+      console.error(
+        '[Supabase auth] Error enviando recuperación:',
+        error.message,
+      );
       showNotice('No se pudo enviar el correo de recuperación.', 'error');
       return;
     }
@@ -647,7 +893,10 @@ export default function App() {
     setPasswordLoading(false);
 
     if (error) {
-      console.error('[Supabase auth] Error cambiando contraseña:', error.message);
+      console.error(
+        '[Supabase auth] Error cambiando contraseña:',
+        error.message,
+      );
       showNotice('No se pudo cambiar la contraseña.', 'error');
       return;
     }
@@ -662,6 +911,12 @@ export default function App() {
   }
 
   async function handleSignOut() {
+    // Revoca el token del dispositivo para evitar notificaciones de otro usuario al cambiar de cuenta.
+    try {
+      await disablePlayZonePush();
+    } catch (error) {
+      console.warn('No se pudo revocar push:', error);
+    }
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -675,158 +930,19 @@ export default function App() {
     showNotice('Sesión cerrada.');
   }
 
-  async function handleRecordSubmit(event) {
-    event.preventDefault();
-    if (!recordForm.clientName.trim()) {
-      showNotice('Agrega el nombre del cliente antes de guardar.', 'error');
-      return;
-    }
-    if (!validateBolivianContact(recordForm.contact.trim())) {
-      showNotice('El contacto debe tener exactamente 8 dígitos y empezar con 6 o 7. Ej: 71234567.', 'error');
-      return;
-    }
-    if (isEndDateBeforeStartDate(recordForm.startDate, recordForm.endDate)) {
-      showNotice('La fecha de fin no puede ser anterior a la fecha de inicio.', 'error');
-      return;
-    }
-    if (!selectedAccountMatchesRecordPlatform) {
-      showNotice('La cuenta asociada debe pertenecer a la misma plataforma seleccionada.', 'error');
-      return;
-    }
-
-    const payload = mapClientToSupabase(recordForm);
-
-    if (editingRecordId) {
-      const { data, error } = await supabase
-        .from('clients')
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq('id', editingRecordId)
-        .select(CLIENT_COLUMNS)
-        .single();
-
-      if (error) {
-        console.error('[Supabase clients] Error actualizando cliente:', error.message);
-        showNotice('No se pudo actualizar el cliente en Supabase.', 'error');
-        return;
-      }
-
-      const updatedRecord = mapClientFromSupabase(data);
-      setRecords((items) => items.map((item) => (item.id === editingRecordId ? updatedRecord : item)));
-      showNotice('Registro actualizado correctamente.');
-    } else {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert(payload)
-        .select(CLIENT_COLUMNS)
-        .single();
-
-      if (error) {
-        console.error('[Supabase clients] Error creando cliente:', error.message);
-        showNotice('No se pudo guardar el cliente en Supabase.', 'error');
-        return;
-      }
-
-      setRecords((items) => [mapClientFromSupabase(data), ...items]);
-      showNotice('Registro guardado correctamente.');
-    }
-
-    setRecordForm(emptyRecordForm);
-    setEditingRecordId(null);
-  }
-
-  async function handleAccountSubmit(event) {
-    event.preventDefault();
-    if (!accountForm.email.trim() && !accountForm.cardName.trim()) {
-      showNotice('Agrega al menos una tarjeta/nombre o email para identificar la cuenta.', 'error');
-      return;
-    }
-    if (isEndDateBeforeStartDate(accountForm.subscriptionStart, accountForm.subscriptionEnd)) {
-      showNotice('La fecha de fin de la suscripción no puede ser anterior a la fecha de inicio.', 'error');
-      return;
-    }
-
-    const payload = mapAccountToSupabase(accountForm);
-
-    if (editingAccountId) {
-      const { data, error } = await supabase
-        .from('accounts')
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq('id', editingAccountId)
-        .select(ACCOUNT_COLUMNS)
-        .single();
-
-      if (error) {
-        console.error('[Supabase accounts] Error actualizando cuenta:', error.message);
-        showNotice('No se pudo actualizar la cuenta en Supabase.', 'error');
-        return;
-      }
-
-      const updatedAccount = mapAccountFromSupabase(data);
-      setAccounts((items) => items.map((item) => (item.id === editingAccountId ? updatedAccount : item)));
-      showNotice('Cuenta actualizada correctamente.');
-    } else {
-      const { data, error } = await supabase
-        .from('accounts')
-        .insert(payload)
-        .select(ACCOUNT_COLUMNS)
-        .single();
-
-      if (error) {
-        console.error('[Supabase accounts] Error creando cuenta:', error.message);
-        showNotice('No se pudo guardar la cuenta en Supabase.', 'error');
-        return;
-      }
-
-      setAccounts((items) => [mapAccountFromSupabase(data), ...items]);
-      showNotice('Cuenta guardada correctamente.');
-    }
-
-    setAccountForm(emptyAccountForm);
-    setEditingAccountId(null);
-  }
-
-  function editRecord(record) {
-    setDetailView(null);
-    const platform = normalizePlatformName(record.platform);
-    setRecordForm({
-      ...emptyRecordForm,
-      ...record,
-      platform,
-      paymentMethod: paymentMethods.includes(record.paymentMethod) ? record.paymentMethod : 'QR',
-      profileName: isChatGPTPlus(platform) ? '' : record.profileName || '',
-      pin: isChatGPTPlus(platform) ? '' : record.pin || '',
-      price: record.price ?? '',
-    });
-    setEditingRecordId(record.id);
-    setActiveTab('records');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function editAccount(account) {
-    setDetailView(null);
-    const platform = normalizePlatformName(account.platform);
-    setAccountForm({
-      ...emptyAccountForm,
-      ...account,
-      platform,
-      type: isChatGPTPlus(platform) ? 'Compartido' : accountTypes.includes(account.type) ? account.type : 'Compartido',
-    });
-    setEditingAccountId(account.id);
-    setActiveTab('accounts');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
   async function deleteRecord(id) {
-    const ok = window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.');
+    const ok = window.confirm(
+      '¿Eliminar este registro? Esta acción no se puede deshacer.',
+    );
     if (!ok) return;
 
-    const { error } = await supabase
-      .from('clients')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('clients').delete().eq('id', id);
 
     if (error) {
-      console.error('[Supabase clients] Error eliminando cliente:', error.message);
+      console.error(
+        '[Supabase clients] Error eliminando cliente:',
+        error.message,
+      );
       showNotice('No se pudo eliminar el cliente en Supabase.', 'error');
       return;
     }
@@ -836,27 +952,35 @@ export default function App() {
   }
 
   async function deleteAccount(id) {
-    const used = records.some((record) => record.accountId === id);
-    const message = used
-      ? 'Esta cuenta está asociada a uno o más registros. Si la eliminas, esos registros quedarán sin cuenta. ¿Continuar?'
-      : '¿Eliminar esta cuenta?';
-    const ok = window.confirm(message);
-    if (!ok) return;
-
-    const { error } = await supabase
-      .from('accounts')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('[Supabase accounts] Error eliminando cuenta:', error.message);
-      showNotice('No se pudo eliminar la cuenta en Supabase.', 'error');
+    if (records.some((record) => record.accountId === id)) {
+      showNotice(
+        'La cuenta tiene clientes asociados. No se eliminará ni se desvincularán clientes.',
+        'error',
+      );
       return;
     }
-
-    setAccounts((items) => items.filter((item) => item.id !== id));
-    setRecords((items) => items.map((record) => (record.accountId === id ? { ...record, accountId: '' } : record)));
-    showNotice('Cuenta eliminada.');
+    if (
+      !window.confirm(
+        '¿Eliminar esta cuenta sin clientes? Esta acción no se puede deshacer.',
+      )
+    )
+      return;
+    const { data, error } = await supabase.rpc('pz_delete_account_safe', {
+      p_id: id,
+    });
+    if (error || !data?.deleted_id) {
+      showNotice(
+        `No se pudo eliminar la cuenta: ${error?.message || 'Operación no confirmada'}`,
+        'error',
+      );
+      return;
+    }
+    try {
+      await reloadPlanillas();
+      showNotice('Cuenta eliminada.');
+    } catch (reloadError) {
+      showNotice(reloadError.message, 'error');
+    }
   }
 
   if (authLoading) {
@@ -884,11 +1008,24 @@ export default function App() {
             <div>
               <p className="eyebrow">Acceso privado</p>
               <h1>PlayZone - Streaming</h1>
-              <p className="hero__text">Inicia sesión para administrar cuentas, clientes, pagos y vencimientos.</p>
+              <p className="hero__text">
+                Inicia sesión para administrar cuentas, clientes, pagos y
+                vencimientos.
+              </p>
             </div>
           </div>
 
-          {notice && <div className={noticeType === 'error' ? 'notice notice--error error-message' : 'notice'}>{notice}</div>}
+          {notice && (
+            <div
+              className={
+                noticeType === 'error'
+                  ? 'notice notice--error error-message'
+                  : 'notice'
+              }
+            >
+              {notice}
+            </div>
+          )}
 
           <form className="form-grid auth-form" onSubmit={handleLogin}>
             <Field label="Email">
@@ -896,7 +1033,12 @@ export default function App() {
                 type="email"
                 inputMode="email"
                 value={loginForm.email}
-                onChange={(event) => setLoginForm((form) => ({ ...form, email: event.target.value }))}
+                onChange={(event) =>
+                  setLoginForm((form) => ({
+                    ...form,
+                    email: event.target.value,
+                  }))
+                }
                 placeholder="correo@ejemplo.com"
                 autoComplete="email"
                 autoCapitalize="none"
@@ -908,7 +1050,12 @@ export default function App() {
               <input
                 type="password"
                 value={loginForm.password}
-                onChange={(event) => setLoginForm((form) => ({ ...form, password: event.target.value }))}
+                onChange={(event) =>
+                  setLoginForm((form) => ({
+                    ...form,
+                    password: event.target.value,
+                  }))
+                }
                 placeholder="Tu contraseña"
                 autoComplete="current-password"
                 autoCapitalize="none"
@@ -925,7 +1072,11 @@ export default function App() {
               >
                 {recoveryLoading ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
               </button>
-              <button className="btn btn--dark" type="submit" disabled={loginLoading}>
+              <button
+                className="btn btn--dark"
+                type="submit"
+                disabled={loginLoading}
+              >
                 {loginLoading ? 'Ingresando...' : 'Iniciar sesión'}
               </button>
             </div>
@@ -936,9 +1087,24 @@ export default function App() {
   }
 
   return (
-    <div className={isSidebarCollapsed ? 'app-shell app-shell--collapsed' : 'app-shell'}>
-      <button className="mobile-menu-btn" type="button" onClick={() => { setIsSidebarCollapsed(false); setIsSidebarOpen(true); }}>☰ Menú</button>
-      <aside className={isSidebarOpen ? 'sidebar sidebar--open' : 'sidebar'} aria-label="Menú principal" onTouchStart={handleSidebarTouchStart} onTouchEnd={handleSidebarTouchEnd}>
+    <div
+      className={
+        isSidebarCollapsed ? 'app-shell app-shell--collapsed' : 'app-shell'
+      }
+    >
+      <button
+        className="mobile-menu-btn"
+        type="button"
+        onClick={openSidebarMenu}
+      >
+        ☰ Menú
+      </button>
+      <aside
+        className={isSidebarOpen ? 'sidebar sidebar--open' : 'sidebar'}
+        aria-label="Menú principal"
+        onTouchStart={handleSidebarTouchStart}
+        onTouchEnd={handleSidebarTouchEnd}
+      >
         <div className="sidebar__brand">
           <img src="/playzone-icon.svg" alt="PlayZone" />
           <div>
@@ -946,29 +1112,105 @@ export default function App() {
             <span>Streaming</span>
           </div>
         </div>
-        <button className="sidebar-toggle" type="button" onClick={() => setIsSidebarCollapsed((value) => !value)}>
-          {isSidebarCollapsed ? 'Abrir' : 'Contraer'}
+        <button
+          className="sidebar-toggle"
+          type="button"
+          onClick={collapseSidebarMenu}
+        >
+          Contraer
         </button>
         <nav className="sidebar__nav">
           {menuItems.map((item) => {
             const tab = item.tab || item.id;
             return (
-              <button key={item.id} className={activeTab === tab ? 'side-link active' : 'side-link'} data-short={item.short} title={item.label} onClick={() => goToTab(tab)}>
+              <button
+                key={item.id}
+                className={activeTab === tab ? 'side-link active' : 'side-link'}
+                data-short={item.short}
+                title={item.label}
+                onClick={() => goToTab(tab)}
+              >
                 {item.label}
               </button>
             );
           })}
         </nav>
         <div className="theme-toggle" aria-label="Cambiar tema">
-          <button className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')}>Claro</button>
-          <button className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')}>Oscuro</button>
+          <button
+            className={theme === 'light' ? 'active' : ''}
+            onClick={() => setTheme('light')}
+          >
+            Claro
+          </button>
+          <button
+            className={theme === 'dark' ? 'active' : ''}
+            onClick={() => setTheme('dark')}
+          >
+            Oscuro
+          </button>
         </div>
-        <button className="btn btn--ghost" type="button" onClick={() => setShowPasswordChange(true)}>Cambiar contraseña</button>
-        <button className="btn btn--ghost sidebar-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
-        <button className="btn btn--ghost sidebar__close" type="button" onClick={() => setIsSidebarOpen(false)}>Cerrar</button>
+        <button
+          className="btn btn--ghost"
+          type="button"
+          onClick={() => setShowPasswordChange(true)}
+        >
+          Cambiar contraseña
+        </button>
+        <button
+          className="btn btn--ghost sidebar-signout"
+          type="button"
+          onClick={handleSignOut}
+        >
+          Cerrar sesión
+        </button>
+        <button
+          className="btn btn--ghost sidebar__close"
+          type="button"
+          onClick={() => setIsSidebarOpen(false)}
+        >
+          Cerrar
+        </button>
       </aside>
-      {isSidebarOpen && <button className="sidebar-backdrop" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} />}
-      <div className="app-content">
+      {isSidebarOpen && (
+        <button
+          className="sidebar-backdrop"
+          aria-label="Cerrar menú"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <div
+        className={
+          activeTab === 'planillas'
+            ? 'app-content app-content--planillas'
+            : 'app-content'
+        }
+      >
+        {isSidebarCollapsed && activeTab !== 'planillas' && (
+          <div className="collapsed-page-menu">
+            <button
+              type="button"
+              className="planillas-menu-btn"
+              onClick={openSidebarMenu}
+            >
+              ☰ Menú
+            </button>
+          </div>
+        )}
+
+        {activeTab !== 'dashboard' && activeTab !== 'planillas' && (
+          <div className="reminder-secondary-topbar">
+            <ReminderCenter
+              userId={session.user.id}
+              accounts={accounts}
+              clients={records}
+              localDueItems={planillasDueItems}
+              quickDraft={reminderDraft}
+              onQuickDraftConsumed={() => setReminderDraft(null)}
+            />
+          </div>
+        )}
+
         {showPasswordChange && (
           <section className="panel form-panel">
             <div className="section-title">
@@ -1010,398 +1252,599 @@ export default function App() {
               </Field>
 
               <div className="form-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setShowPasswordChange(false)}>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => setShowPasswordChange(false)}
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="btn btn--dark" disabled={passwordLoading}>
-                  {passwordLoading ? 'Guardando...' : 'Guardar nueva contraseña'}
+                <button
+                  type="submit"
+                  className="btn btn--dark"
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading
+                    ? 'Guardando...'
+                    : 'Guardar nueva contraseña'}
                 </button>
               </div>
             </form>
           </section>
         )}
         {activeTab === 'dashboard' && (
-        <>
-        <div className="dashboard-topbar">
-          <button className="btn btn--tiny btn--ghost dashboard-signout" type="button" onClick={handleSignOut}>Cerrar sesión</button>
-        </div>
-        <header className="hero">
-        <div className="hero__brand">
-          <img src="/playzone-icon.svg" alt="PlayZone" />
-          <div>
-            <p className="eyebrow">Panel personal de Jordy</p>
-            <h1>PlayZone - Streaming</h1>
-            <p className="hero__text">Gestiona cuentas, clientes, perfiles, pagos y vencimientos desde una sola pantalla.</p>
-          </div>
-        </div>
-        <div className="hero__actions">
-          <span className="session-email">{session.user?.email}</span>
-          <button className="btn btn--dark" onClick={() => goToTab('records')}>👤 Registrar Cliente</button>
-        </div>
-      </header>
-      </>
+          <>
+            <div className="dashboard-topbar">
+              <ReminderCenter
+                userId={session.user.id}
+                accounts={accounts}
+                clients={records}
+                localDueItems={planillasDueItems}
+                quickDraft={reminderDraft}
+                onQuickDraftConsumed={() => setReminderDraft(null)}
+              />
+              <button
+                className="btn btn--tiny btn--ghost dashboard-signout"
+                type="button"
+                onClick={handleSignOut}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+            <header className="hero">
+              <div className="hero__brand">
+                <img src="/playzone-icon.svg" alt="PlayZone" />
+                <div>
+                  <p className="eyebrow">Panel personal de Jordy</p>
+                  <h1>PlayZone - Streaming</h1>
+                </div>
+              </div>
+              <div className="hero__actions">
+                <span className="session-email">{session.user?.email}</span>
+                <button
+                  className="btn btn--dark"
+                  onClick={() => goToTab('planillas')}
+                >
+                  📑 Abrir Planillas
+                </button>
+              </div>
+            </header>
+          </>
         )}
 
-      {notice && <div className={noticeType === 'error' ? 'notice notice--error error-message' : 'notice'}>{notice}</div>}
+        {notice && (
+          <div
+            className={
+              noticeType === 'error'
+                ? 'notice notice--error error-message'
+                : 'notice'
+            }
+          >
+            {notice}
+          </div>
+        )}
 
-      {activeTab === 'dashboard' && (
-        <main className="page-grid">
-          <section className={hasUpcomingDueDates ? 'dashboard-alert alert-soon' : 'dashboard-alert alert-normal'}>
-            <strong>{hasUpcomingDueDates ? '⚠️ Atención' : '✅ Todo al día'}</strong>
-            <span>
-              {hasUpcomingDueDates
-                ? `Tienes ${upcomingClientsCount} ${upcomingClientsCount === 1 ? 'cliente' : 'clientes'} y ${upcomingAccountsCount} ${upcomingAccountsCount === 1 ? 'cuenta' : 'cuentas'} por vencer en los próximos 2 días.`
-                : 'No tienes vencimientos próximos.'}
-            </span>
-          </section>
+        {activeTab === 'dashboard' && (
+          <main className="page-grid dashboard-grid">
+            <section
+              className={
+                hasUpcomingDueDates
+                  ? 'dashboard-alert alert-soon'
+                  : 'dashboard-alert alert-normal'
+              }
+            >
+              <strong>
+                {hasUpcomingDueDates ? '⚠️ Atención' : '✅ Todo al día'}
+              </strong>
+              <span>
+                {hasUpcomingDueDates
+                  ? `Tienes ${upcomingClientsCount} ${
+                      upcomingClientsCount === 1 ? 'cliente' : 'clientes'
+                    } y ${upcomingAccountsCount} ${
+                      upcomingAccountsCount === 1 ? 'cuenta' : 'cuentas'
+                    } por vencer en los próximos 2 días.`
+                  : 'No tienes vencimientos próximos.'}
+              </span>
+            </section>
 
-          <section className="stats-grid">
-            <StatCard label="📋 Registros totales" value={stats.total} helper="Clientes/perfiles guardados" />
-            <StatCard label="✅ Clientes activos" value={stats.active} helper="Servicios activos" tone="success" />
-            <StatCard label="Por vencer" value={stats.near} helper="Próximos 7 días" tone="warning" />
-            <StatCard label="Vencidos" value={stats.expired} helper="Revisar renovación" tone="danger" />
-            <StatCard label="Pendientes" value={stats.pending} helper="Pago o activación pendiente" />
-            <StatCard label="💰 Ingresos" value={formatMoney(stats.monthIncome)} helper="Solo registros pagados" tone="success" />
-          </section>
+            <section className="stats-grid">
+              <StatCard
+                label="📋 Registros totales"
+                value={stats.total}
+                helper="Clientes/perfiles guardados"
+              />
+              <StatCard
+                label="✅ Clientes activos"
+                value={stats.active}
+                helper="Servicios activos"
+                tone="success"
+              />
+              <StatCard
+                label="Por vencer"
+                value={stats.near}
+                helper="Próximos 7 días"
+                tone="warning"
+              />
+              <StatCard
+                label="Vencidos"
+                value={stats.expired}
+                helper="Revisar renovación"
+                tone="danger"
+              />
+              <StatCard
+                label="Pendientes"
+                value={stats.pending}
+                helper="Pago o activación pendiente"
+              />
+              <StatCard
+                label="💰 Ingresos"
+                value={formatMoney(stats.monthIncome)}
+                helper="Solo registros pagados"
+                tone="success"
+              />
+            </section>
 
-          <section className="panel panel--wide">
-            <div className="section-title">
-              <div>
-                <h2>⏰ Vencimientos próximos de clientes</h2>
-                <p>Clientes que vencen hoy, mañana o pasado mañana.</p>
+            <section className="panel dashboard-platforms-panel">
+              <div className="section-title compact">
+                <div>
+                  <h2>📺 Cuentas por plataforma</h2>
+                  <p>Vista rápida de las cuentas registradas.</p>
+                </div>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => goToTab('accountList')}
+                >
+                  Ver todas
+                </button>
               </div>
-              <button className="btn btn--ghost" onClick={() => setActiveTab('clientList')}>Ver todos</button>
-            </div>
-            {upcomingRecords.length === 0 ? (
-              <EmptyState title="No hay vencimientos cercanos" text="Cuando agregues registros con fecha de fin, aparecerán aquí automáticamente." />
-            ) : (
-              <div className="cards-list">
-                {upcomingRecords.map((record) => (
-                  <RecordMiniCard key={record.id} record={record} account={accountById[record.accountId]} onView={() => viewRecord(record)} />
-                ))}
-              </div>
-            )}
-          </section>
 
-          <section className="panel">
-            <div className="section-title">
-              <div>
-                <h2>🔐 Vencimientos próximos de cuentas</h2>
-                <p>Cuentas que vencen hoy, mañana o pasado mañana.</p>
-              </div>
-              <button className="btn btn--ghost" onClick={() => setActiveTab('accountList')}>Ver cuentas</button>
-            </div>
-            {upcomingAccounts.length === 0 ? (
-              <EmptyState title="No hay cuentas por vencer" text="Las cuentas con vencimiento en los próximos 2 días aparecerán aquí." />
-            ) : (
-              <div className="cards-list">
-                {upcomingAccounts.map((account) => (
-                  <AccountMiniCard key={account.id} account={account} onView={() => viewAccount(account)} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="panel">
-            <div className="section-title compact">
-              <h2>🔐 Resumen de cuentas</h2>
-              <button className="btn btn--ghost" onClick={() => setActiveTab('accounts')}>Gestionar</button>
-            </div>
-            {accounts.length === 0 ? (
-              <EmptyState title="Sin cuentas registradas" text="Agrega tus cuentas de Netflix, Prime Video, ChatGPT Plus u otras plataformas." />
-            ) : (
-              <div className="summary-list">
-                {accounts.slice(0, 5).map((account) => (
-                  <div className="summary-row" key={account.id}>
-                    <div>
-                      <PlatformTag platform={account.platform} />
-                      <span>{account.email || account.cardName || 'Sin identificador'}</span>
+              <div className="dashboard-platform-grid">
+                {dashboardPlatforms.map((platform) => (
+                  <article
+                    className={`dashboard-platform-card ${platform.className}`}
+                    key={platform.key}
+                  >
+                    <div className="dashboard-platform-card__icon">
+                      <img src={platform.logo} alt="" aria-hidden="true" />
                     </div>
-                    <Badge label={account.status} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </main>
-      )}
-
-      {activeTab === 'records' && (
-        <main className="page-grid page-grid--single">
-          <section className="panel form-panel">
-            <div className="section-title">
-              <div>
-                <h2>{editingRecordId ? '👤 Editar registro' : '👤 Registrar Cliente'}</h2>
-                <p>Guarda datos del cliente, perfil, fechas, pago y estado.</p>
-              </div>
-            </div>
-
-            <form className="form-grid" onSubmit={handleRecordSubmit}>
-              <Field label="Cliente / nombre completo" required>
-                <input value={recordForm.clientName} onChange={(e) => updateRecordField('clientName', e.target.value)} placeholder="Ej: Juan Pérez" />
-              </Field>
-              <Field label="Contacto">
-                <input value={recordForm.contact} onChange={(e) => updateRecordField('contact', e.target.value)} placeholder="Ej: 70000000" />
-              </Field>
-              <Field label="Plataforma">
-                <select value={recordForm.platform} onChange={(e) => updateRecordField('platform', e.target.value)}>
-                  {platforms.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Cuenta asociada">
-                <select value={selectedAccountMatchesRecordPlatform ? recordForm.accountId : ''} onChange={(e) => updateRecordField('accountId', e.target.value)}>
-                  <option value="">Sin cuenta</option>
-                  {filteredAccountsForRecord.map((account) => <option key={account.id} value={account.id}>{getAccountLabel(account)}</option>)}
-                </select>
-              </Field>
-              {!isRecordChatGPTPlus && (
-                <>
-                  <Field label="Perfil / ID">
-                    <input value={recordForm.profileName} onChange={(e) => updateRecordField('profileName', e.target.value)} placeholder="Ej: Perfil 1 / Jordy" />
-                  </Field>
-                  <Field label="PIN">
-                    <input value={recordForm.pin} onChange={(e) => updateRecordField('pin', e.target.value)} placeholder="Ej: 1234" />
-                  </Field>
-                </>
-              )}
-              <Field label="Dispositivos">
-                <input value={recordForm.devices} onChange={(e) => updateRecordField('devices', e.target.value)} placeholder="Ej: Celular y PC" />
-              </Field>
-              <Field label="Fecha de inicio">
-                <input type="date" value={recordForm.startDate} onChange={(e) => updateRecordField('startDate', e.target.value)} />
-              </Field>
-              <Field label="Fecha de fin / vencimiento">
-                <input type="date" value={recordForm.endDate} onChange={(e) => updateRecordField('endDate', e.target.value)} />
-              </Field>
-              <Field label="Pago / precio">
-                <input type="number" min="0" step="0.01" value={recordForm.price} onChange={(e) => updateRecordField('price', e.target.value)} placeholder="Ej: 25" />
-              </Field>
-              <Field label="Método de pago">
-                <select value={recordForm.paymentMethod} onChange={(e) => updateRecordField('paymentMethod', e.target.value)}>
-                  {paymentMethods.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Estado de pago">
-                <select value={recordForm.paymentStatus} onChange={(e) => updateRecordField('paymentStatus', e.target.value)}>
-                  {paymentStatuses.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Estado del servicio">
-                <select value={recordForm.status} onChange={(e) => updateRecordField('status', e.target.value)}>
-                  {recordStatuses.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Observaciones" full>
-                <textarea value={recordForm.notes} onChange={(e) => updateRecordField('notes', e.target.value)} placeholder="Ej: Renovará el próximo mes, no pagará, pidió un dispositivo extra..." rows="3" />
-              </Field>
-              <div className="form-actions">
-                {editingRecordId && (
-                  <button type="button" className="btn btn--ghost" onClick={() => { setEditingRecordId(null); setRecordForm(emptyRecordForm); }}>Cancelar edición</button>
-                )}
-                <button className="btn btn--dark" type="submit">{editingRecordId ? 'Guardar cambios' : 'Registrar cliente'}</button>
-              </div>
-            </form>
-          </section>
-        </main>
-      )}
-
-      {activeTab === 'accounts' && (
-        <main className="page-grid page-grid--single">
-          <section className="panel form-panel">
-            <div className="section-title">
-              <div>
-                <h2>{editingAccountId ? '🔐 Editar cuenta' : '🔐 Cuentas'}</h2>
-                <p>Guarda las cuentas/plataformas que usas para tus clientes.</p>
-              </div>
-            </div>
-
-            <form className="form-grid" onSubmit={handleAccountSubmit}>
-              <Field label="Plataforma">
-                <select value={accountForm.platform} onChange={(e) => updateAccountField('platform', e.target.value)}>
-                  {platforms.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Tipo">
-                <select value={accountForm.type} onChange={(e) => updateAccountField('type', e.target.value)} disabled={isChatGPTPlus(accountForm.platform)}>
-                  {accountTypes.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Tarjeta / nombre de referencia">
-                <input value={accountForm.cardName} onChange={(e) => updateAccountField('cardName', e.target.value)} placeholder="Ej: Jordy - Takenos" />
-              </Field>
-              <Field label="Email / usuario">
-                <input type="email" inputMode="email" value={accountForm.email} onChange={(e) => updateAccountField('email', e.target.value)} placeholder="Ej: correo@gmail.com" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
-              </Field>
-              <Field label="Contraseña">
-                <input type="password" value={accountForm.password} onChange={(e) => updateAccountField('password', e.target.value)} placeholder="Puedes dejarlo vacío por seguridad" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
-              </Field>
-              <Field label="Fecha suscripción inicio">
-                <input type="date" value={accountForm.subscriptionStart} onChange={(e) => updateAccountField('subscriptionStart', e.target.value)} />
-              </Field>
-              <Field label="Fecha suscripción fin">
-                <input type="date" value={accountForm.subscriptionEnd} onChange={(e) => updateAccountField('subscriptionEnd', e.target.value)} />
-              </Field>
-              <Field label="Estado de cuenta">
-                <select value={accountForm.status} onChange={(e) => updateAccountField('status', e.target.value)}>
-                  {accountStatuses.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </Field>
-              <Field label="Observaciones" full>
-                <textarea value={accountForm.notes} onChange={(e) => updateAccountField('notes', e.target.value)} placeholder="Ej: Renovar con tal tarjeta, cuenta compartida, revisar pago..." rows="3" />
-              </Field>
-              <div className="form-actions">
-                {editingAccountId && (
-                  <button type="button" className="btn btn--ghost" onClick={() => { setEditingAccountId(null); setAccountForm(emptyAccountForm); }}>Cancelar edición</button>
-                )}
-                <button className="btn btn--dark" type="submit">{editingAccountId ? 'Guardar cambios' : 'Guardar cuenta'}</button>
-              </div>
-            </form>
-          </section>
-        </main>
-      )}
-
-      {activeTab === 'clientList' && (
-        <main className="page-grid page-grid--stacked">
-          <section className="panel panel--wide list-panel">
-            <div className="section-title">
-              <div>
-                <h2>👥 Lista de Clientes</h2>
-                <p>Busca por nombre, contacto, plataforma, perfil o cuenta asociada.</p>
-              </div>
-            </div>
-
-            <div className="filters filters--clients">
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por cliente, contacto, cuenta o plataforma..." />
-              <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}>
-                <option>Todas</option>
-                {platforms.map((item) => <option key={item}>{item}</option>)}
-              </select>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                <option>Todos</option>
-                {recordStatuses.map((item) => <option key={item}>{item}</option>)}
-              </select>
-              <select value={clientAccountFilter} onChange={(e) => setClientAccountFilter(e.target.value)}>
-                <option value="Todas">Todas las cuentas</option>
-                <option value="">Sin cuenta</option>
-                {accounts.map((account) => <option key={account.id} value={account.id}>{getAccountLabel(account)}</option>)}
-              </select>
-            </div>
-
-            {filteredRecords.length === 0 ? (
-              <EmptyState title="No hay registros para mostrar" text="Registra un cliente o cambia los filtros de búsqueda." />
-            ) : (
-              <div className="records-table">
-                {filteredRecords.map((record) => (
-                  <article className="record-card" key={record.id}>
-                    <div className="record-card__main">
-                      <div>
-                        <div className="record-title-row">
-                          <h3>{record.clientName}</h3>
-                          <Badge label={getRecordStatus(record)} />
-                        </div>
-                        <p className="muted"><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'} · {record.devices || 'Sin dispositivos'}</p>
-                        <p className="muted small">Cuenta: <AccountLabel account={accountById[record.accountId]} /></p>
-                      </div>
-                      <div className="record-money">
-                        <strong>{formatMoney(record.price)}</strong>
-                        <span>{record.paymentStatus}</span>
-                      </div>
-                    </div>
-                    <div className="record-details">
-                      <span className="contact-detail">
-                        <span>Contacto: <strong>{record.contact || 'Sin dato'}</strong></span>
-                        {validateBolivianContact(record.contact || '') && (
-                          <span className="quick-actions">
-                            <button type="button" className="btn btn--tiny btn--ghost" onClick={() => copyContact(record)}>
-                              {copiedRecordId === record.id ? 'Copiado' : 'Copiar'}
-                            </button>
-                            <button type="button" className="btn btn--tiny btn--whatsapp" onClick={() => openWhatsApp(record.contact)}>
-                              WhatsApp
-                            </button>
-                          </span>
-                        )}
-                      </span>
-                      <span>Inicio: <strong>{formatDate(record.startDate)}</strong></span>
-                      <span>Fin: <strong>{formatDate(record.endDate)}</strong></span>
-                      {!isChatGPTPlus(record.platform) && <span>PIN: <strong>{record.pin || 'Sin dato'}</strong></span>}
-                    </div>
-                    {record.notes && <p className="record-notes">{record.notes}</p>}
-                    <div className="record-actions">
-                      <button className="btn btn--ghost" onClick={() => editRecord(record)}>Editar</button>
-                      <button className="btn btn--danger" onClick={() => deleteRecord(record.id)}>Eliminar</button>
-                    </div>
+                    <strong>{platform.count}</strong>
+                    <span>{platform.label}</span>
                   </article>
                 ))}
               </div>
-            )}
-          </section>
-        </main>
-      )}
+            </section>
 
-      {activeTab === 'accountList' && (
-        <main className="page-grid page-grid--stacked">
-          <section className="panel panel--wide list-panel">
-            <div className="section-title">
-              <div>
-                <h2>📋 Lista de Cuentas</h2>
-                <p>Administra plataformas, correos, fechas, tipo, estado y observaciones.</p>
+            <section className="panel dashboard-activity-panel">
+              <div className="section-title compact">
+                <h2>🕘 Actividad reciente</h2>
               </div>
-            </div>
 
-            <div className="filters filters--accounts">
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar cuenta, email, plataforma u observación..." />
-              <select value={accountPlatformFilter} onChange={(e) => setAccountPlatformFilter(e.target.value)}>
-                <option>Todas</option>
-                {platforms.map((item) => <option key={item}>{item}</option>)}
-              </select>
-              <select value={accountStatusFilter} onChange={(e) => setAccountStatusFilter(e.target.value)}>
-                <option>Todos</option>
-                {accountStatuses.map((item) => <option key={item}>{item}</option>)}
-              </select>
-              <select value={accountTypeFilter} onChange={(e) => setAccountTypeFilter(e.target.value)}>
-                <option>Todos</option>
-                {accountTypes.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </div>
+              {recentActivity.length === 0 ? (
+                <div className="dashboard-compact-empty">
+                  Todavía no hay actividad registrada.
+                </div>
+              ) : (
+                <div className="dashboard-activity-list">
+                  {recentActivity.map((item) => (
+                    <div className="dashboard-activity-row" key={item.id}>
+                      <div className="dashboard-activity-icon">
+                        {item.kind === 'Cuenta' ? '🔐' : '👤'}
+                      </div>
 
-            {filteredAccounts.length === 0 ? (
-              <EmptyState title="No hay cuentas para mostrar" text="Registra una cuenta o cambia los filtros de búsqueda." />
-            ) : (
-              <div className="account-grid">
-                {filteredAccounts.map((account) => {
-                  const usedCount = records.filter((record) => record.accountId === account.id).length;
-                  return (
-                    <article className="account-card" key={account.id}>
-                      <div className="account-card__header">
+                      <div className="dashboard-activity-copy">
+                        <strong>{item.title}</strong>
+                        <span>
+                          {item.kind} · {item.detail}
+                        </span>
+                      </div>
+
+                      <time>{formatActivityDate(item.createdAt)}</time>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="panel dashboard-due-panel">
+              <div className="section-title compact">
+                <div>
+                  <h2>⏰ Clientes por vencer</h2>
+                  <p>Hoy, mañana o pasado mañana.</p>
+                </div>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => goToTab('clientList')}
+                >
+                  Ver todos
+                </button>
+              </div>
+
+              {upcomingRecords.length === 0 ? (
+                <div className="dashboard-compact-empty">
+                  No hay clientes con vencimiento cercano.
+                </div>
+              ) : (
+                <div className="dashboard-due-list">
+                  {upcomingRecords.slice(0, 3).map((record) => (
+                    <div className="dashboard-due-row" key={record.id}>
+                      <div>
+                        <strong>{record.clientName}</strong>
+                        <span>{normalizePlatformName(record.platform)}</span>
+                      </div>
+
+                      <div className="dashboard-due-side">
+                        <span className="dashboard-days-badge">
+                          {record.daysLeft === 0
+                            ? 'Hoy'
+                            : `${record.daysLeft} d`}
+                        </span>
+                        <button
+                          className="btn btn--tiny btn--ghost"
+                          type="button"
+                          onClick={() => viewRecord(record)}
+                        >
+                          Ver
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="panel dashboard-due-panel">
+              <div className="section-title compact">
+                <div>
+                  <h2>🔐 Cuentas por vencer</h2>
+                  <p>Hoy, mañana o pasado mañana.</p>
+                </div>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => goToTab('accountList')}
+                >
+                  Ver todas
+                </button>
+              </div>
+
+              {upcomingAccounts.length === 0 ? (
+                <div className="dashboard-compact-empty">
+                  No hay cuentas con vencimiento cercano.
+                </div>
+              ) : (
+                <div className="dashboard-due-list">
+                  {upcomingAccounts.slice(0, 3).map((account) => (
+                    <div className="dashboard-due-row" key={account.id}>
+                      <div>
+                        <strong>
+                          {normalizePlatformName(account.platform)}
+                        </strong>
+                        <span>
+                          {account.email ||
+                            account.cardName ||
+                            'Sin identificador'}
+                        </span>
+                      </div>
+
+                      <div className="dashboard-due-side">
+                        <span className="dashboard-days-badge">
+                          {account.daysLeft === 0
+                            ? 'Hoy'
+                            : `${account.daysLeft} d`}
+                        </span>
+                        <button
+                          className="btn btn--tiny btn--ghost"
+                          type="button"
+                          onClick={() => viewAccount(account)}
+                        >
+                          Ver
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
+        )}
+
+        {activeTab === 'clientList' && (
+          <main className="page-grid page-grid--stacked">
+            <section className="panel panel--wide list-panel">
+              <div className="section-title">
+                <div>
+                  <h2>👥 Lista de Clientes</h2>
+                  <p>
+                    Busca por nombre, contacto, plataforma, perfil o cuenta
+                    asociada.
+                  </p>
+                </div>
+              </div>
+
+              <div className="filters filters--clients">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar por cliente, contacto, cuenta o plataforma..."
+                />
+                <select
+                  value={platformFilter}
+                  onChange={(e) => setPlatformFilter(e.target.value)}
+                >
+                  <option>Todas</option>
+                  {platforms.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option>Todos</option>
+                  {recordStatuses.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  value={clientAccountFilter}
+                  onChange={(e) => setClientAccountFilter(e.target.value)}
+                >
+                  <option value="Todas">Todas las cuentas</option>
+                  <option value="">Sin cuenta</option>
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {getAccountLabel(account)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {filteredRecords.length === 0 ? (
+                <EmptyState
+                  title="No hay registros para mostrar"
+                  text="Agrega clientes desde Planillas o cambia los filtros de búsqueda."
+                />
+              ) : (
+                <div className="records-table">
+                  {filteredRecords.map((record) => (
+                    <article className="record-card" key={record.id}>
+                      <div className="record-card__main">
                         <div>
-                          <h3><PlatformTag platform={account.platform} /></h3>
-                          <p>{isChatGPTPlus(account.platform) ? account.cardName || 'Sin tarjeta/ref.' : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}</p>
+                          <div className="record-title-row">
+                            <h3>{record.clientName}</h3>
+                            <Badge label={getRecordStatus(record)} />
+                          </div>
+                          <p className="muted">
+                            <PlatformTag platform={record.platform} /> ·{' '}
+                            {isChatGPTPlus(record.platform)
+                              ? 'Sin perfil requerido'
+                              : record.profileName || 'Sin perfil'}{' '}
+                            · {record.devices || 'Sin dispositivos'}
+                          </p>
+                          <p className="muted small">
+                            Cuenta:{' '}
+                            <AccountLabel
+                              account={accountById[record.accountId]}
+                            />
+                          </p>
                         </div>
-                        <Badge label={account.status} />
+                        <div className="record-money">
+                          <strong>{formatMoney(record.price)}</strong>
+                          <span>{record.paymentStatus}</span>
+                        </div>
                       </div>
-                      <div className="account-data">
-                        <span>Email</span>
-                        <strong>{account.email || 'Sin dato'}</strong>
-                        <span>Contraseña</span>
-                        <strong>{account.password ? 'Guardada' : 'Sin dato'}</strong>
-                        <span>Suscripción</span>
-                        <strong>{formatDate(account.subscriptionStart)} - {formatDate(account.subscriptionEnd)}</strong>
-                        <span>Clientes/perfiles</span>
-                        <strong>{usedCount}</strong>
+                      <div className="record-details">
+                        <span className="contact-detail">
+                          <span>
+                            Contacto:{' '}
+                            <strong>{record.contact || 'Sin dato'}</strong>
+                          </span>
+                          {validateBolivianContact(record.contact || '') && (
+                            <span className="quick-actions">
+                              <button
+                                type="button"
+                                className="btn btn--tiny btn--ghost"
+                                onClick={() => copyContact(record)}
+                              >
+                                {copiedRecordId === record.id
+                                  ? 'Copiado'
+                                  : 'Copiar'}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--tiny btn--whatsapp"
+                                onClick={() => openWhatsApp(record.contact)}
+                              >
+                                WhatsApp
+                              </button>
+                            </span>
+                          )}
+                        </span>
+                        <span>
+                          Inicio:{' '}
+                          <strong>{formatDate(record.startDate)}</strong>
+                        </span>
+                        <span>
+                          Fin: <strong>{formatDate(record.endDate)}</strong>
+                        </span>
+                        {!isChatGPTPlus(record.platform) && (
+                          <span>
+                            PIN: <strong>{record.pin || 'Sin dato'}</strong>
+                          </span>
+                        )}
                       </div>
-                      {account.notes && <p className="record-notes">{account.notes}</p>}
+                      {record.notes && (
+                        <p className="record-notes">{record.notes}</p>
+                      )}
                       <div className="record-actions">
-                        <button className="btn btn--ghost" onClick={() => editAccount(account)}>Editar</button>
-                        <button className="btn btn--danger" onClick={() => deleteAccount(account.id)}>Eliminar</button>
+                        <button
+                          className="btn btn--ghost"
+                          onClick={() => goToTab('planillas')}
+                        >
+                          Abrir Planillas
+                        </button>
+                        <button
+                          className="btn btn--danger"
+                          onClick={() => deleteRecord(record.id)}
+                        >
+                          Eliminar
+                        </button>
                       </div>
                     </article>
-                  );
-                })}
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
+        )}
+
+        {activeTab === 'accountList' && (
+          <main className="page-grid page-grid--stacked">
+            <section className="panel panel--wide list-panel">
+              <div className="section-title">
+                <div>
+                  <h2>📋 Lista de Cuentas</h2>
+                  <p>
+                    Administra plataformas, correos, fechas, tipo, estado y
+                    observaciones.
+                  </p>
+                </div>
               </div>
-            )}
-          </section>
-        </main>
-      )}
+
+              <div className="filters filters--accounts">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar cuenta, email, plataforma u observación..."
+                />
+                <select
+                  value={accountPlatformFilter}
+                  onChange={(e) => setAccountPlatformFilter(e.target.value)}
+                >
+                  <option>Todas</option>
+                  {platforms.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  value={accountStatusFilter}
+                  onChange={(e) => setAccountStatusFilter(e.target.value)}
+                >
+                  <option>Todos</option>
+                  {accountStatuses.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  value={accountTypeFilter}
+                  onChange={(e) => setAccountTypeFilter(e.target.value)}
+                >
+                  <option>Todos</option>
+                  {accountTypes.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              {filteredAccounts.length === 0 ? (
+                <EmptyState
+                  title="No hay cuentas para mostrar"
+                  text="Agrega cuentas desde Planillas o cambia los filtros de búsqueda."
+                />
+              ) : (
+                <div className="account-grid">
+                  {filteredAccounts.map((account) => {
+                    const usedCount = records.filter(
+                      (record) => record.accountId === account.id,
+                    ).length;
+                    return (
+                      <article className="account-card" key={account.id}>
+                        <div className="account-card__header">
+                          <div>
+                            <h3>
+                              <PlatformTag platform={account.platform} />
+                            </h3>
+                            <p>
+                              {isChatGPTPlus(account.platform)
+                                ? account.cardName || 'Sin tarjeta/ref.'
+                                : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}
+                            </p>
+                          </div>
+                          <Badge label={account.status} />
+                        </div>
+                        <div className="account-data">
+                          <span>Email</span>
+                          <strong>{account.email || 'Sin dato'}</strong>
+                          <span>Contraseña</span>
+                          <strong>
+                            {account.password ? 'Guardada' : 'Sin dato'}
+                          </strong>
+                          <span>Suscripción</span>
+                          <strong>
+                            {formatDate(account.subscriptionStart)} -{' '}
+                            {formatDate(account.subscriptionEnd)}
+                          </strong>
+                          <span>Clientes/perfiles</span>
+                          <strong>{usedCount}</strong>
+                        </div>
+                        {account.notes && (
+                          <p className="record-notes">{account.notes}</p>
+                        )}
+                        <div className="record-actions">
+                          <button
+                            className="btn btn--ghost"
+                            onClick={() => goToTab('planillas')}
+                          >
+                            Abrir Planillas
+                          </button>
+                          <button
+                            className="btn btn--danger"
+                            onClick={() => deleteAccount(account.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </main>
+        )}
+
+        {activeTab === 'planillas' && (
+          <Planillas
+            onOpenMenu={openSidebarMenu}
+            onCreateReminder={(draft) =>
+              setReminderDraft({
+                ...draft,
+                requestId: Date.now() + Math.random(),
+              })
+            }
+            onDueItemsChange={setPlanillasDueItems}
+            userId={session.user.id}
+            remoteAccounts={accounts}
+            remoteClients={records}
+            onReload={reloadPlanillas}
+            remoteLoading={remoteLoading.accounts || remoteLoading.clients}
+            remoteError={[remoteErrors.accounts, remoteErrors.clients]
+              .filter(Boolean)
+              .join(' / ')}
+            notificationCenter={
+              <ReminderCenter
+                userId={session.user.id}
+                accounts={accounts}
+                clients={records}
+                localDueItems={planillasDueItems}
+                quickDraft={reminderDraft}
+                onQuickDraftConsumed={() => setReminderDraft(null)}
+              />
+            }
+          />
+        )}
       </div>
       {currentRecordDetail && (
         <RecordDetailModal
@@ -1409,15 +1852,19 @@ export default function App() {
           account={accountById[currentRecordDetail.accountId]}
           onClose={() => setDetailView(null)}
           onWhatsApp={() => openWhatsApp(currentRecordDetail.contact)}
-          onEdit={() => editRecord(currentRecordDetail)}
+          onOpenPlanillas={() => goToTab('planillas')}
         />
       )}
       {currentAccountDetail && (
         <AccountDetailModal
           account={currentAccountDetail}
-          usedCount={records.filter((record) => record.accountId === currentAccountDetail.id).length}
+          usedCount={
+            records.filter(
+              (record) => record.accountId === currentAccountDetail.id,
+            ).length
+          }
           onClose={() => setDetailView(null)}
-          onEdit={() => editAccount(currentAccountDetail)}
+          onOpenPlanillas={() => goToTab('planillas')}
         />
       )}
     </div>
@@ -1437,14 +1884,28 @@ function StatCard({ label, value, helper, tone = 'neutral' }) {
 function Badge({ label }) {
   const key = String(label || '').toLowerCase();
   let className = 'badge';
-  if (key.includes('habilitado') || key.includes('activa') || key.includes('pagado')) className += ' badge--success';
+  if (
+    key.includes('habilitado') ||
+    key.includes('activa') ||
+    key.includes('pagado')
+  )
+    className += ' badge--success';
   if (key.includes('pendiente')) className += ' badge--warning';
-  if (key.includes('vencido') || key.includes('deshabilitado') || key.includes('suspendida')) className += ' badge--danger';
+  if (
+    key.includes('vencido') ||
+    key.includes('deshabilitado') ||
+    key.includes('suspendida')
+  )
+    className += ' badge--danger';
   return <span className={className}>{label}</span>;
 }
 
 function PlatformTag({ platform }) {
-  return <span className={getPlatformClass(platform)}>{normalizePlatformName(platform)}</span>;
+  return (
+    <span className={getPlatformClass(platform)}>
+      {normalizePlatformName(platform)}
+    </span>
+  );
 }
 
 function AccountLabel({ account }) {
@@ -1462,7 +1923,10 @@ function AccountLabel({ account }) {
 function Field({ label, children, full = false, required = false }) {
   return (
     <label className={full ? 'field field--full' : 'field'}>
-      <span>{label}{required && <b> *</b>}</span>
+      <span>
+        {label}
+        {required && <b> *</b>}
+      </span>
       {children}
     </label>
   );
@@ -1478,23 +1942,55 @@ function EmptyState({ title, text }) {
   );
 }
 
-function DetailModal({ title, children, onClose, onWhatsApp, canUseWhatsApp = false, onEdit }) {
+function DetailModal({
+  title,
+  children,
+  onClose,
+  onWhatsApp,
+  canUseWhatsApp = false,
+  onOpenPlanillas,
+}) {
   return (
     <div className="detail-backdrop" role="presentation" onClick={onClose}>
-      <article className="detail-modal" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+      <article
+        className="detail-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="detail-modal__header">
           <h2>{title}</h2>
-          <button className="btn btn--tiny btn--ghost" type="button" onClick={onClose}>Cerrar</button>
+          <button
+            className="btn btn--tiny btn--ghost"
+            type="button"
+            onClick={onClose}
+          >
+            Cerrar
+          </button>
         </div>
         {children}
         <div className="detail-modal__actions">
-          <button className="btn btn--ghost" type="button" onClick={onClose}>Volver</button>
+          <button className="btn btn--ghost" type="button" onClick={onClose}>
+            Volver
+          </button>
           {onWhatsApp && (
-            <button className="btn btn--whatsapp" type="button" onClick={onWhatsApp} disabled={!canUseWhatsApp}>
+            <button
+              className="btn btn--whatsapp"
+              type="button"
+              onClick={onWhatsApp}
+              disabled={!canUseWhatsApp}
+            >
               WhatsApp
             </button>
           )}
-          <button className="btn btn--dark" type="button" onClick={onEdit}>Editar</button>
+          <button
+            className="btn btn--dark"
+            type="button"
+            onClick={onOpenPlanillas}
+          >
+            Abrir Planillas
+          </button>
         </div>
       </article>
     </div>
@@ -1512,15 +2008,32 @@ function DetailItem({ label, value }) {
   );
 }
 
-function RecordDetailModal({ record, account, onClose, onWhatsApp, onEdit }) {
+function RecordDetailModal({
+  record,
+  account,
+  onClose,
+  onWhatsApp,
+  onOpenPlanillas,
+}) {
   const canUseWhatsApp = validateBolivianContact(record.contact || '');
 
   return (
-    <DetailModal title="Detalle del cliente" onClose={onClose} onWhatsApp={onWhatsApp} canUseWhatsApp={canUseWhatsApp} onEdit={onEdit}>
+    <DetailModal
+      title="Detalle del cliente"
+      onClose={onClose}
+      onWhatsApp={onWhatsApp}
+      canUseWhatsApp={canUseWhatsApp}
+      onOpenPlanillas={onOpenPlanillas}
+    >
       <div className="detail-title-row">
         <div>
           <h3>{record.clientName}</h3>
-          <p><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'}</p>
+          <p>
+            <PlatformTag platform={record.platform} /> ·{' '}
+            {isChatGPTPlus(record.platform)
+              ? 'Sin perfil requerido'
+              : record.profileName || 'Sin perfil'}
+          </p>
         </div>
         <Badge label={getRecordStatus(record)} />
       </div>
@@ -1530,7 +2043,9 @@ function RecordDetailModal({ record, account, onClose, onWhatsApp, onEdit }) {
         <DetailItem label="Dispositivos" value={record.devices} />
         <DetailItem label="Inicio" value={formatDate(record.startDate)} />
         <DetailItem label="Fin" value={formatDate(record.endDate)} />
-        {!isChatGPTPlus(record.platform) && <DetailItem label="PIN" value={record.pin} />}
+        {!isChatGPTPlus(record.platform) && (
+          <DetailItem label="PIN" value={record.pin} />
+        )}
         <DetailItem label="Pago" value={formatMoney(record.price)} />
         <DetailItem label="Estado de pago" value={record.paymentStatus} />
       </div>
@@ -1539,20 +2054,36 @@ function RecordDetailModal({ record, account, onClose, onWhatsApp, onEdit }) {
   );
 }
 
-function AccountDetailModal({ account, usedCount, onClose, onEdit }) {
+function AccountDetailModal({ account, usedCount, onClose, onOpenPlanillas }) {
   return (
-    <DetailModal title="Detalle de la cuenta" onClose={onClose} onEdit={onEdit}>
+    <DetailModal
+      title="Detalle de la cuenta"
+      onClose={onClose}
+      onOpenPlanillas={onOpenPlanillas}
+    >
       <div className="detail-title-row">
         <div>
-          <h3><PlatformTag platform={account.platform} /></h3>
-          <p>{isChatGPTPlus(account.platform) ? account.cardName || 'Sin tarjeta/ref.' : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}</p>
+          <h3>
+            <PlatformTag platform={account.platform} />
+          </h3>
+          <p>
+            {isChatGPTPlus(account.platform)
+              ? account.cardName || 'Sin tarjeta/ref.'
+              : `${account.type} · ${account.cardName || 'Sin tarjeta/ref.'}`}
+          </p>
         </div>
         <Badge label={account.status} />
       </div>
       <div className="detail-data">
         <DetailItem label="Email" value={account.email} />
-        <DetailItem label="Contraseña" value={account.password ? 'Guardada' : 'Sin dato'} />
-        <DetailItem label="Inicio" value={formatDate(account.subscriptionStart)} />
+        <DetailItem
+          label="Contraseña"
+          value={account.password ? 'Guardada' : 'Sin dato'}
+        />
+        <DetailItem
+          label="Inicio"
+          value={formatDate(account.subscriptionStart)}
+        />
         <DetailItem label="Fin" value={formatDate(account.subscriptionEnd)} />
         <DetailItem label="Clientes/perfiles" value={usedCount} />
       </div>
@@ -1567,12 +2098,21 @@ function RecordMiniCard({ record, account, onView }) {
     <article className={`mini-card ${getAlertClass(days)}`}>
       <div>
         <h3>{record.clientName}</h3>
-        <p><PlatformTag platform={record.platform} /> · {isChatGPTPlus(record.platform) ? 'Sin perfil requerido' : record.profileName || 'Sin perfil'}</p>
-        <span><AccountLabel account={account} /></span>
+        <p>
+          <PlatformTag platform={record.platform} /> ·{' '}
+          {isChatGPTPlus(record.platform)
+            ? 'Sin perfil requerido'
+            : record.profileName || 'Sin perfil'}
+        </p>
+        <span>
+          <AccountLabel account={account} />
+        </span>
       </div>
       <div className="mini-card__side">
         <strong>{days === 0 ? 'Hoy' : `${days} días`}</strong>
-        <button className="btn btn--ghost" onClick={onView}>Ver</button>
+        <button className="btn btn--ghost" onClick={onView}>
+          Ver
+        </button>
       </div>
     </article>
   );
@@ -1583,13 +2123,17 @@ function AccountMiniCard({ account, onView }) {
   return (
     <article className={`mini-card ${getAlertClass(days)}`}>
       <div>
-        <h3><PlatformTag platform={account.platform} /></h3>
+        <h3>
+          <PlatformTag platform={account.platform} />
+        </h3>
         <p>{account.email || account.cardName || 'Sin identificador'}</p>
         <span>Fin: {formatDate(account.subscriptionEnd)}</span>
       </div>
       <div className="mini-card__side">
         <strong>{days === 0 ? 'Hoy' : `${days} días`}</strong>
-        <button className="btn btn--ghost" onClick={onView}>Ver</button>
+        <button className="btn btn--ghost" onClick={onView}>
+          Ver
+        </button>
       </div>
     </article>
   );

@@ -4,3 +4,17 @@ dist
 .env.local
 .DS_Store
 .vscode
+
+# Respaldos y datos privados de PlayZone
+*.respaldo*
+*.backup
+*.dump
+*.csv
+*.xlsx
+*.xls
+*.zip
+
+# Variables privadas
+.env.*
+!.env.example
+
