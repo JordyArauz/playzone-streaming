@@ -1,48 +1,95 @@
 :root {
   --bg: #f7f5fb;
+
   --card: #ffffff;
+
   --text: #101828;
+
   --muted: #667085;
+
   --line: #e4e7ec;
+
   --dark: #0b0b0f;
+
   --dark-2: #1f1f2b;
+
   --primary: #9146ff;
+
   --primary-soft: #efe6ff;
+
   --success: #16a34a;
+
   --success-soft: #dcfce7;
+
   --warning: #d97706;
+
   --warning-soft: #fef3c7;
+
   --danger: #dc2626;
+
   --danger-soft: #fee2e2;
+
   --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+
   --shell: rgba(255, 255, 255, 0.88);
+
   --field: #ffffff;
+
   --ghost: #f2f4f7;
+
   --hero-start: #0b0b0f;
+
   --hero-mid: #241633;
+
   --hero-end: #9146ff;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   --bg: #08080c;
+
   --card: #12121a;
+
   --text: #f8fafc;
+
   --muted: #a8adbb;
+
   --line: #2b2b38;
+
   --dark: #ffffff;
+
   --dark-2: #e8e8ef;
+
   --primary: #9146ff;
+
   --primary-soft: rgba(145, 70, 255, 0.18);
+
   --success-soft: rgba(22, 163, 74, 0.18);
+
   --warning-soft: rgba(217, 119, 6, 0.2);
+
   --danger-soft: rgba(220, 38, 38, 0.18);
+
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+
   --shell: rgba(18, 18, 26, 0.9);
+
   --field: #171720;
+
   --ghost: #20202b;
+
   --hero-start: #000000;
+
   --hero-mid: #17111f;
+
   --hero-end: #9146ff;
 }
 
@@ -54,16 +101,26 @@ html,
 body,
 #root {
   width: 100%;
+
   max-width: 100%;
+
   overflow-x: hidden;
 }
 
 body {
   margin: 0;
+
   min-height: 100vh;
+
   background:
-    radial-gradient(circle at top left, rgba(145, 70, 255, 0.18), transparent 34rem),
+    radial-gradient(
+      circle at top left,
+
+      rgba(145, 70, 255, 0.18),
+      transparent 34rem
+    ),
     var(--bg);
+
   color: var(--text);
 }
 
@@ -72,22 +129,31 @@ input,
 select,
 textarea {
   font: inherit;
+
   max-width: 100%;
 }
 
 button {
   cursor: pointer;
+
   min-width: 0;
 }
 
 .app-shell {
   width: min(1380px, calc(100% - 28px));
+
   margin: 0 auto;
+
   padding: 24px 0 42px;
+
   display: grid;
+
   grid-template-columns: 260px minmax(0, 1fr);
+
   gap: 18px;
+
   align-items: start;
+
   max-width: 100%;
 }
 
@@ -97,34 +163,47 @@ button {
 
 .app-content {
   min-width: 0;
+
   max-width: 100%;
 }
 
 .auth-page {
   width: min(520px, calc(100% - 28px));
+
   min-height: 100vh;
+
   margin: 0 auto;
+
   padding: 24px 0;
+
   display: grid;
+
   place-items: center;
 }
 
 .auth-panel {
   display: grid;
+
   gap: 18px;
 }
 
 .auth-panel__brand {
   display: flex;
+
   align-items: center;
+
   gap: 14px;
+
   min-width: 0;
 }
 
 .auth-panel__brand img {
   width: 58px;
+
   height: 58px;
+
   border-radius: 18px;
+
   flex: 0 0 auto;
 }
 
@@ -139,13 +218,17 @@ button {
 
 .session-email {
   color: rgba(255, 255, 255, 0.86);
+
   font-size: 0.9rem;
+
   font-weight: 800;
+
   overflow-wrap: anywhere;
 }
 
 .sidebar-signout {
   width: 100%;
+
   text-align: center;
 }
 
@@ -155,17 +238,25 @@ button {
 
 .dashboard-topbar {
   display: flex;
+
   justify-content: flex-end;
+
   align-items: center;
+
   margin-bottom: 10px;
+
   min-width: 0;
 }
 
 .dashboard-topbar .dashboard-signout {
   padding: 7px 10px;
+
   border: 1px solid var(--line);
+
   color: var(--muted);
+
   font-size: 0.76rem;
+
   box-shadow: none;
 }
 
@@ -177,32 +268,51 @@ button {
 
 .sidebar {
   position: sticky;
+
   top: 18px;
+
   height: calc(100vh - 48px);
+
   min-height: calc(100vh - 48px);
+
   display: flex;
+
   flex-direction: column;
+
   gap: 18px;
+
   padding: 18px;
+
   border: 1px solid var(--line);
+
   border-radius: 24px;
+
   background: var(--shell);
+
   box-shadow: var(--shadow);
+
   backdrop-filter: blur(12px);
+
   max-width: 100%;
+
   overflow-y: auto;
+
   overflow-wrap: anywhere;
 }
 
 .sidebar__brand {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
 }
 
 .sidebar__brand img {
   width: 46px;
+
   height: 46px;
+
   border-radius: 14px;
 }
 
@@ -217,44 +327,62 @@ button {
 
 .sidebar__brand span {
   color: var(--muted);
+
   font-size: 0.85rem;
+
   font-weight: 800;
 }
 
 .sidebar__nav {
   display: grid;
+
   gap: 8px;
 }
 
 .sidebar-toggle {
   border: 1px solid var(--line);
+
   border-radius: 14px;
+
   background: var(--ghost);
+
   color: var(--dark-2);
+
   padding: 10px 12px;
+
   font-weight: 900;
 }
 
 .side-link {
   width: 100%;
+
   border: 1px solid transparent;
+
   border-radius: 14px;
+
   background: transparent;
+
   color: var(--muted);
+
   padding: 12px;
+
   text-align: left;
+
   font-weight: 900;
+
   overflow-wrap: anywhere;
 }
 
 .side-link.active,
 .side-link:hover {
   background: var(--primary);
+
   color: #ffffff;
 }
 
 .app-shell--collapsed .sidebar {
   padding: 14px;
+
   align-items: center;
 }
 
@@ -269,12 +397,15 @@ button {
 
 .app-shell--collapsed .sidebar-toggle {
   width: 100%;
+
   padding: 10px 4px;
+
   font-size: 0.76rem;
 }
 
 .app-shell--collapsed .sidebar-signout {
   padding: 10px 4px;
+
   font-size: 0.72rem;
 }
 
@@ -285,112 +416,175 @@ button {
 
 .app-shell--collapsed .side-link {
   display: grid;
+
   place-items: center;
+
   min-height: 44px;
+
   padding: 0;
+
   font-size: 0;
 }
 
 .app-shell--collapsed .side-link::after {
   content: attr(data-short);
+
   font-size: 0.95rem;
 }
 
 .theme-toggle {
   display: grid;
+
   grid-template-columns: 1fr 1fr;
+
   gap: 6px;
+
   margin-top: auto;
+
   padding: 5px;
+
   border: 1px solid var(--line);
+
   border-radius: 14px;
+
   background: var(--ghost);
 }
 
 .theme-toggle button {
   border: 0;
+
   border-radius: 10px;
+
   background: transparent;
+
   color: var(--muted);
+
   padding: 9px;
+
   font-weight: 900;
+
   min-width: 0;
 }
 
 .theme-toggle button.active {
   background: var(--primary);
+
   color: #ffffff;
 }
 
 .hero {
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
   gap: 18px;
+
   padding: 24px;
+
   border-radius: 28px;
-  background: linear-gradient(135deg, var(--hero-start), var(--hero-mid) 58%, var(--hero-end));
+
+  background: linear-gradient(
+    135deg,
+    var(--hero-start),
+    var(--hero-mid) 58%,
+
+    var(--hero-end)
+  );
+
   color: white;
+
   box-shadow: var(--shadow);
+
   max-width: 100%;
+
   min-width: 0;
 }
 
 .hero__brand {
   display: flex;
+
   align-items: center;
+
   gap: 18px;
+
   min-width: 0;
 }
 
 .hero__brand img {
   width: 74px;
+
   height: 74px;
+
   border-radius: 22px;
+
   box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
 }
 
 .hero h1,
 .hero p {
   margin: 0;
+
   overflow-wrap: anywhere;
 }
 
 .hero h1 {
   margin-top: 2px;
+
   font-size: 2.8rem;
+
   letter-spacing: 0;
 }
 
 .eyebrow {
   color: #ddd6fe;
+
   font-size: 0.78rem;
+
   font-weight: 800;
+
   letter-spacing: 0.12em;
+
   text-transform: uppercase;
 }
 
 .hero__text {
   max-width: 680px;
+
   color: #e5e7eb;
+
   margin-top: 8px !important;
 }
 
 .hero__actions {
   display: flex;
+
   flex-wrap: wrap;
+
   justify-content: flex-end;
+
   gap: 10px;
+
   min-width: 0;
 }
 
 .btn {
   border: 0;
+
   border-radius: 14px;
+
   padding: 11px 16px;
+
   font-weight: 800;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+
   max-width: 100%;
+
   overflow-wrap: anywhere;
 }
 
@@ -400,70 +594,102 @@ button {
 
 .btn--dark {
   background: var(--primary);
+
   color: white;
+
   box-shadow: 0 10px 22px rgba(145, 70, 255, 0.25);
 }
 
 .btn--light {
   background: #ffffff;
+
   color: #0b0b0f;
 }
 
 .btn--ghost {
   background: var(--ghost);
+
   color: var(--dark-2);
 }
 
 .btn--danger {
   background: var(--danger-soft);
+
   color: var(--danger);
 }
 
 .btn--tiny {
   border-radius: 10px;
+
   padding: 7px 10px;
+
   font-size: 0.78rem;
 }
 
 .btn--whatsapp {
   background: #16a34a;
+
   color: #ffffff;
 }
 
 .notice {
   position: fixed;
+
   right: 18px;
+
   bottom: 18px;
+
   z-index: 45;
+
   width: min(420px, calc(100vw - 28px));
+
   margin: 0;
+
   padding: 13px 16px;
+
   border-radius: 16px;
+
   background: #ecfdf3;
+
   color: #027a48;
+
   font-weight: 800;
+
   border: 1px solid #abefc6;
+
   box-shadow: var(--shadow);
+
   overflow-wrap: anywhere;
 }
 
 .notice--error,
 .error-message {
   background: var(--danger-soft);
+
   border-color: rgba(220, 38, 38, 0.36);
+
   color: var(--danger);
 }
 
 .dashboard-alert {
   grid-column: 1 / -1;
+
   display: flex;
+
   align-items: center;
+
   gap: 10px;
+
   width: 100%;
+
   padding: 14px 16px;
+
   border: 1px solid var(--line);
+
   border-radius: 18px;
+
   box-shadow: var(--shadow);
+
   overflow-wrap: anywhere;
 }
 
@@ -473,6 +699,7 @@ button {
 
 .alert-today {
   background: linear-gradient(180deg, var(--shell), var(--danger-soft));
+
   border-color: rgba(220, 38, 38, 0.42);
 }
 
@@ -483,6 +710,7 @@ button {
 
 .alert-soon {
   background: linear-gradient(180deg, var(--shell), var(--warning-soft));
+
   border-color: rgba(145, 70, 255, 0.34);
 }
 
@@ -493,6 +721,7 @@ button {
 
 .alert-normal {
   background: linear-gradient(180deg, var(--shell), var(--success-soft));
+
   border-color: rgba(22, 163, 74, 0.28);
 }
 
@@ -502,35 +731,53 @@ button {
 
 .tabs {
   display: flex;
+
   gap: 10px;
+
   margin: 18px 0;
+
   overflow-x: auto;
+
   padding-bottom: 4px;
 }
 
 .tab {
   border: 1px solid var(--line);
+
   background: var(--shell);
+
   color: var(--muted);
+
   padding: 12px 16px;
+
   border-radius: 999px;
+
   font-weight: 900;
+
   white-space: nowrap;
 }
 
 .tab.active {
   background: var(--primary);
+
   color: white;
+
   border-color: var(--primary);
 }
 
 .page-grid {
   display: grid;
+
   grid-template-columns: minmax(0, 1fr) 390px;
+
   gap: 18px;
+
   align-items: start;
+
   min-width: 0;
+
   width: 100%;
+
   max-width: 100%;
 }
 
@@ -549,11 +796,17 @@ button {
 
 .stats-grid {
   grid-column: 1 / -1;
+
   display: grid;
+
   grid-template-columns: repeat(6, minmax(140px, 1fr));
+
   gap: 14px;
+
   min-width: 0;
+
   width: 100%;
+
   max-width: 100%;
 }
 
@@ -563,39 +816,57 @@ button {
 .account-card,
 .mini-card {
   width: 100%;
+
   background: rgba(255, 255, 255, 0.88);
+
   background: var(--shell);
+
   backdrop-filter: blur(12px);
+
   border: 1px solid var(--line);
+
   box-shadow: var(--shadow);
+
   min-width: 0;
+
   max-width: 100%;
+
   overflow-wrap: anywhere;
 }
 
 .stat-card {
   border-radius: 24px;
+
   padding: 18px;
 }
 
 .stat-card span {
   display: block;
+
   color: var(--muted);
+
   font-size: 0.85rem;
+
   font-weight: 800;
 }
 
 .stat-card strong {
   display: block;
+
   margin: 8px 0 3px;
+
   font-size: 2rem;
+
   letter-spacing: 0;
+
   overflow-wrap: anywhere;
 }
 
 .stat-card p {
   margin: 0;
+
   color: var(--muted);
+
   font-size: 0.86rem;
 }
 
@@ -613,6 +884,7 @@ button {
 
 .panel {
   border-radius: 26px;
+
   padding: 20px;
 }
 
@@ -622,10 +894,15 @@ button {
 
 .section-title {
   display: flex;
+
   align-items: flex-start;
+
   justify-content: space-between;
+
   gap: 12px;
+
   margin-bottom: 16px;
+
   min-width: 0;
 }
 
@@ -640,13 +917,17 @@ button {
 
 .section-title h2 {
   font-size: 1.2rem;
+
   letter-spacing: 0;
+
   overflow-wrap: anywhere;
 }
 
 .section-title p {
   margin-top: 4px;
+
   color: var(--muted);
+
   font-size: 0.94rem;
 }
 
@@ -655,19 +936,29 @@ button {
 .account-grid,
 .summary-list {
   display: grid;
+
   gap: 12px;
+
   min-width: 0;
+
   width: 100%;
+
   max-width: 100%;
 }
 
 .mini-card {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
+
   gap: 12px;
+
   padding: 16px;
+
   border-radius: 20px;
+
   min-width: 0;
 }
 
@@ -679,19 +970,24 @@ button {
 
 .mini-card h3 {
   font-size: 1rem;
+
   overflow-wrap: anywhere;
 }
 
 .mini-card p,
 .mini-card span {
   color: var(--muted);
+
   font-size: 0.9rem;
 }
 
 .mini-card__side {
   display: grid;
+
   justify-items: end;
+
   gap: 8px;
+
   min-width: 100px;
 }
 
@@ -701,41 +997,60 @@ button {
 
 .summary-row {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
+
   gap: 12px;
+
   padding: 13px;
+
   border: 1px solid var(--line);
+
   border-radius: 18px;
+
   background: var(--field);
+
   min-width: 0;
 }
 
 .summary-row strong,
 .summary-row span {
   display: block;
+
   overflow-wrap: anywhere;
 }
 
 .summary-row span {
   margin-top: 3px;
+
   color: var(--muted);
+
   font-size: 0.86rem;
+
   word-break: break-word;
 }
 
 .form-grid {
   display: grid;
+
   grid-template-columns: 1fr 1fr;
+
   gap: 13px;
+
   min-width: 0;
+
   width: 100%;
+
   max-width: 100%;
 }
 
 .field {
   display: grid;
+
   gap: 7px;
+
   min-width: 0;
 }
 
@@ -745,8 +1060,11 @@ button {
 
 .field span {
   font-size: 0.84rem;
+
   color: var(--dark-2);
+
   font-weight: 900;
+
   overflow-wrap: anywhere;
 }
 
@@ -758,18 +1076,29 @@ input,
 select,
 textarea {
   width: 100%;
+
   border: 1px solid var(--line);
+
   background: var(--field);
+
   color: var(--text);
+
   border-radius: 14px;
+
   padding: 12px 13px;
+
   outline: none;
-  transition: border 0.18s ease, box-shadow 0.18s ease;
+
+  transition:
+    border 0.18s ease,
+    box-shadow 0.18s ease;
+
   min-width: 0;
 }
 
 textarea {
   resize: vertical;
+
   min-height: 88px;
 }
 
@@ -777,26 +1106,39 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--primary);
+
   box-shadow: 0 0 0 4px rgba(145, 70, 255, 0.14);
 }
 
 .form-actions {
   grid-column: 1 / -1;
+
   display: flex;
+
   justify-content: flex-end;
+
   gap: 10px;
+
   flex-wrap: wrap;
+
   margin-top: 4px;
+
   min-width: 0;
 }
 
 .filters {
   display: grid;
+
   grid-template-columns: minmax(180px, 1fr) 160px 160px;
+
   gap: 10px;
+
   margin-bottom: 16px;
+
   min-width: 0;
+
   width: 100%;
+
   max-width: 100%;
 }
 
@@ -811,16 +1153,22 @@ textarea:focus {
 .record-card,
 .account-card {
   border-radius: 22px;
+
   padding: 16px;
+
   min-width: 0;
 }
 
 .record-card__main,
 .account-card__header {
   display: flex;
+
   align-items: flex-start;
+
   justify-content: space-between;
+
   gap: 14px;
+
   min-width: 0;
 }
 
@@ -833,21 +1181,28 @@ textarea:focus {
 
 .record-title-row {
   display: flex;
+
   align-items: center;
+
   gap: 10px;
+
   flex-wrap: wrap;
 }
 
 .record-title-row h3,
 .account-card h3 {
   margin: 0;
+
   letter-spacing: 0;
+
   overflow-wrap: anywhere;
 }
 
 .muted {
   color: var(--muted);
+
   margin: 5px 0 0;
+
   overflow-wrap: anywhere;
 }
 
@@ -857,9 +1212,13 @@ textarea:focus {
 
 .record-money {
   display: grid;
+
   justify-items: end;
+
   gap: 4px;
+
   white-space: nowrap;
+
   min-width: 0;
 }
 
@@ -869,154 +1228,223 @@ textarea:focus {
 
 .record-money span {
   color: var(--muted);
+
   font-size: 0.86rem;
+
   font-weight: 800;
 }
 
 .record-details {
   display: grid;
+
   grid-template-columns: repeat(4, minmax(0, 1fr));
+
   gap: 8px;
+
   margin: 14px 0 0;
+
   min-width: 0;
 }
 
 .record-details span {
   background: var(--field);
+
   border: 1px solid var(--line);
+
   border-radius: 14px;
+
   color: var(--muted);
+
   padding: 9px 10px;
+
   font-size: 0.86rem;
+
   min-width: 0;
+
   overflow-wrap: anywhere;
 }
 
 .record-details strong {
   color: var(--dark-2);
+
   overflow-wrap: anywhere;
 }
 
 .contact-detail {
   display: grid;
+
   gap: 8px;
 }
 
 .quick-actions {
   display: flex;
+
   gap: 8px;
+
   flex-wrap: wrap;
 }
 
 .record-notes {
   margin: 12px 0 0;
+
   padding: 12px;
+
   border-radius: 14px;
+
   background: var(--primary-soft);
+
   color: var(--dark-2);
+
   font-size: 0.92rem;
+
   overflow-wrap: anywhere;
 }
 
 .record-actions {
   display: flex;
+
   justify-content: flex-end;
+
   gap: 10px;
+
   margin-top: 14px;
+
   flex-wrap: wrap;
+
   min-width: 0;
 }
 
 .badge {
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
+
   min-height: 28px;
+
   padding: 5px 10px;
+
   border-radius: 999px;
+
   background: var(--primary-soft);
+
   color: var(--primary);
+
   font-size: 0.78rem;
+
   font-weight: 900;
+
   white-space: nowrap;
 }
 
 .badge--success {
   background: var(--success-soft);
+
   color: var(--success);
 }
 
 .badge--warning {
   background: var(--warning-soft);
+
   color: var(--warning);
 }
 
 .badge--danger {
   background: var(--danger-soft);
+
   color: var(--danger);
 }
 
 .platform-tag {
   --platform-bg: var(--primary);
+
   --platform-fg: #ffffff;
+
   --platform-border: transparent;
+
   display: inline-flex;
+
   align-items: center;
+
   width: fit-content;
+
   max-width: 100%;
+
   min-height: 26px;
+
   padding: 4px 10px;
+
   border: 1px solid var(--platform-border);
+
   border-radius: 999px;
+
   background: var(--platform-bg);
+
   color: var(--platform-fg);
+
   font-size: 0.78rem;
+
   font-weight: 950;
+
   line-height: 1.2;
+
   white-space: normal;
+
   text-align: center;
+
   overflow-wrap: anywhere;
 }
 
 .platform-tag--netflix {
   --platform-bg: linear-gradient(135deg, #e50914, #b20710);
+
   --platform-fg: #ffffff;
 }
 
 .platform-tag--prime-video {
   --platform-bg: linear-gradient(135deg, #00a8e1, #050505);
+
   --platform-fg: #ffffff;
 }
 
 .platform-tag--chatgpt-plus {
   --platform-bg: #74aa9c;
+
   --platform-fg: #ffffff;
 }
 
 .platform-tag--disney {
   --platform-bg: linear-gradient(135deg, #00b7c2, #063f54);
+
   --platform-fg: #ffffff;
 }
 
 .platform-tag--hbo-max {
   --platform-bg: #ffffff;
+
   --platform-fg: #050505;
+
   --platform-border: #050505;
 }
 
-:root[data-theme="dark"] .platform-tag--hbo-max {
+:root[data-theme='dark'] .platform-tag--hbo-max {
   --platform-bg: #050505;
+
   --platform-fg: #ffffff;
+
   --platform-border: #ffffff;
 }
 
 .platform-tag--crunchyroll {
   --platform-bg: linear-gradient(135deg, #f47521, #0b0b0f);
+
   --platform-fg: #ffffff;
 }
 
 .platform-tag--spotify {
   --platform-bg: linear-gradient(135deg, #1db954, #050505);
+
   --platform-fg: #ffffff;
 }
 
@@ -1026,23 +1454,37 @@ textarea:focus {
 
 .detail-backdrop {
   position: fixed;
+
   inset: 0;
+
   z-index: 70;
+
   display: grid;
+
   place-items: center;
+
   padding: 18px;
+
   background: rgba(0, 0, 0, 0.46);
 }
 
 .detail-modal {
   width: min(680px, calc(100vw - 28px));
+
   max-height: calc(100vh - 36px);
+
   overflow-y: auto;
+
   padding: 18px;
+
   border: 1px solid var(--line);
+
   border-radius: 22px;
+
   background: var(--shell);
+
   box-shadow: var(--shadow);
+
   backdrop-filter: blur(12px);
 }
 
@@ -1050,14 +1492,19 @@ textarea:focus {
 .detail-title-row,
 .detail-modal__actions {
   display: flex;
+
   align-items: flex-start;
+
   justify-content: space-between;
+
   gap: 12px;
+
   min-width: 0;
 }
 
 .detail-modal__header {
   align-items: center;
+
   margin-bottom: 14px;
 }
 
@@ -1077,30 +1524,39 @@ textarea:focus {
 
 .detail-title-row p {
   margin-top: 5px;
+
   color: var(--muted);
 }
 
 .detail-data {
   display: grid;
+
   grid-template-columns: 140px minmax(0, 1fr);
+
   gap: 8px 10px;
+
   min-width: 0;
 }
 
 .detail-data span {
   color: var(--muted);
+
   font-size: 0.84rem;
 }
 
 .detail-data strong {
   font-size: 0.92rem;
+
   overflow-wrap: anywhere;
 }
 
 .detail-modal__actions {
   display: grid;
+
   justify-content: end;
+
   justify-items: end;
+
   margin-top: 14px;
 }
 
@@ -1110,7 +1566,9 @@ textarea:focus {
 
 .detail-modal__actions .btn:disabled {
   cursor: not-allowed;
+
   opacity: 0.55;
+
   transform: none;
 }
 
@@ -1120,45 +1578,65 @@ textarea:focus {
 
 .account-card__header p {
   margin: 5px 0 0;
+
   color: var(--muted);
 }
 
 .account-data {
   display: grid;
+
   grid-template-columns: 100px minmax(0, 1fr);
+
   gap: 8px 10px;
+
   margin-top: 14px;
+
   min-width: 0;
 }
 
 .account-data span {
   color: var(--muted);
+
   font-size: 0.84rem;
 }
 
 .account-data strong {
   overflow-wrap: anywhere;
+
   word-break: break-word;
+
   font-size: 0.9rem;
 }
 
 .empty-state {
   text-align: center;
+
   padding: 36px 18px;
+
   border: 1px dashed #cbd5e1;
+
   border-radius: 22px;
+
   background: var(--field);
 }
 
 .empty-state__icon {
   width: 46px;
+
   height: 46px;
+
   display: grid;
+
   place-items: center;
+
   margin: 0 auto 12px;
+
   border-radius: 16px;
+
   background: var(--primary-soft);
+
   color: var(--primary);
+
   font-weight: 900;
 }
 
@@ -1169,6 +1647,7 @@ textarea:focus {
 
 .empty-state p {
   margin-top: 6px;
+
   color: var(--muted);
 }
 
@@ -1178,11 +1657,17 @@ textarea:focus {
 
 .security-note {
   margin-top: 16px;
+
   padding: 14px 16px;
+
   border-radius: 18px;
+
   background: #fffbeb;
+
   border: 1px solid #fde68a;
+
   color: #92400e;
+
   overflow-wrap: anywhere;
 }
 
@@ -1190,51 +1675,81 @@ textarea:focus {
   .app-shell,
   .app-shell--collapsed {
     grid-template-columns: 1fr;
+
     padding-top: 64px;
+
     width: 100%;
+
     padding-left: 16px;
+
     padding-right: 16px;
+
     gap: 16px;
   }
 
   .mobile-menu-btn {
     position: fixed;
+
     top: 12px;
+
     left: 12px;
+
     z-index: 40;
+
     display: inline-flex;
+
     border: 1px solid var(--line);
+
     border-radius: 14px;
+
     background: var(--primary);
+
     color: #ffffff;
+
     padding: 11px 14px;
+
     font-weight: 900;
+
     box-shadow: var(--shadow);
   }
 
   .dashboard-topbar {
     position: fixed;
+
     top: 12px;
+
     right: 12px;
+
     z-index: 40;
+
     margin: 0;
   }
 
   .sidebar {
     position: fixed;
+
     inset: 0 auto 0 0;
+
     z-index: 60;
+
     width: min(320px, calc(100vw - 24px));
+
     min-height: 100vh;
+
     max-height: 100vh;
+
     border-radius: 0 24px 24px 0;
+
     transform: translateX(-105%);
+
     transition: transform 0.2s ease;
+
     overflow-y: auto;
   }
 
   .app-shell--collapsed .sidebar {
     align-items: stretch;
+
     padding: 18px;
   }
 
@@ -1249,8 +1764,11 @@ textarea:focus {
 
   .app-shell--collapsed .side-link {
     display: block;
+
     min-height: auto;
+
     padding: 12px;
+
     font-size: inherit;
   }
 
@@ -1264,6 +1782,7 @@ textarea:focus {
 
   .sidebar__close {
     display: inline-flex;
+
     justify-content: center;
   }
 
@@ -1274,18 +1793,26 @@ textarea:focus {
 
   .sidebar-backdrop {
     position: fixed;
+
     inset: 0;
+
     z-index: 50;
+
     display: block;
+
     border: 0;
+
     background: rgba(0, 0, 0, 0.44);
   }
 
   .page-grid,
   .page-grid--form {
     grid-template-columns: 1fr;
+
     gap: 16px;
+
     width: 100%;
+
     max-width: 100%;
   }
 
@@ -1298,7 +1825,9 @@ textarea:focus {
   .app-shell,
   .app-shell--collapsed {
     width: 100%;
+
     padding: 64px 12px 28px;
+
     gap: 14px;
   }
 
@@ -1314,36 +1843,47 @@ textarea:focus {
   .account-grid,
   .summary-list {
     width: 100%;
+
     max-width: 100%;
+
     min-width: 0;
   }
 
   .hero {
     display: grid;
+
     padding: 16px;
+
     border-radius: 24px;
+
     gap: 16px;
   }
 
   .hero h1 {
     font-size: 1.9rem;
+
     line-height: 1.08;
   }
 
   .hero__brand {
     align-items: flex-start;
+
     gap: 12px;
   }
 
   .hero__brand img {
     width: 56px;
+
     height: 56px;
+
     border-radius: 18px;
   }
 
   .hero__actions {
     justify-content: stretch;
+
     display: grid;
+
     grid-template-columns: 1fr;
   }
 
@@ -1353,8 +1893,11 @@ textarea:focus {
 
   .notice {
     left: 12px;
+
     right: 12px;
+
     bottom: 12px;
+
     width: auto;
   }
 
@@ -1364,17 +1907,21 @@ textarea:focus {
 
   .hero__actions .dashboard-signout {
     width: fit-content;
+
     justify-self: end;
   }
 
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+
     gap: 10px;
   }
 
   .dashboard-alert {
     display: grid;
+
     gap: 6px;
+
     padding: 13px 14px;
   }
 
@@ -1388,6 +1935,7 @@ textarea:focus {
 
   .stat-card strong {
     margin: 6px 0 2px;
+
     font-size: 1.35rem;
   }
 
@@ -1398,6 +1946,7 @@ textarea:focus {
   .form-grid,
   .filters {
     grid-template-columns: 1fr;
+
     gap: 12px;
   }
 
@@ -1408,7 +1957,9 @@ textarea:focus {
   .field select,
   .field textarea {
     width: 100%;
+
     max-width: 100%;
+
     min-width: 0;
   }
 
@@ -1416,17 +1967,20 @@ textarea:focus {
   .account-card__header,
   .mini-card {
     display: grid;
+
     gap: 12px;
   }
 
   .record-money,
   .mini-card__side {
     justify-items: start;
+
     white-space: normal;
   }
 
   .record-details {
     grid-template-columns: 1fr;
+
     gap: 10px;
   }
 
@@ -1441,6 +1995,7 @@ textarea:focus {
 
   .detail-data {
     grid-template-columns: 1fr;
+
     gap: 4px;
   }
 
@@ -1454,8 +2009,11 @@ textarea:focus {
   .mini-card,
   .stat-card {
     border-radius: 20px;
+
     width: 100%;
+
     max-width: 100%;
+
     box-sizing: border-box;
   }
 
@@ -1477,6 +2035,7 @@ textarea:focus {
   .section-title,
   .section-title.compact {
     display: grid;
+
     gap: 10px;
   }
 
@@ -1487,7 +2046,9 @@ textarea:focus {
   .form-actions,
   .record-actions {
     display: grid;
+
     grid-template-columns: 1fr;
+
     justify-content: stretch;
   }
 
@@ -1502,6 +2063,7 @@ textarea:focus {
 
   .account-data {
     grid-template-columns: 1fr;
+
     gap: 4px 0;
   }
 
@@ -1511,6 +2073,7 @@ textarea:focus {
 
   .summary-row {
     display: grid;
+
     align-items: start;
   }
 
@@ -1527,13 +2090,17 @@ textarea:focus {
   .app-shell,
   .app-shell--collapsed {
     width: 100%;
+
     padding-left: 10px;
+
     padding-right: 10px;
   }
 
   .mobile-menu-btn {
     left: 10px;
+
     right: auto;
+
     max-width: calc(100vw - 20px);
   }
 
@@ -1543,8 +2110,11 @@ textarea:focus {
 
   .sidebar {
     width: calc(100vw - 20px);
+
     max-width: calc(100vw - 20px);
+
     padding: 16px;
+
     border-radius: 0 20px 20px 0;
   }
 
@@ -1558,6 +2128,7 @@ textarea:focus {
 
   .dashboard-topbar .dashboard-signout {
     width: fit-content;
+
     justify-self: end;
   }
 
@@ -1569,17 +2140,3552 @@ textarea:focus {
 
   .record-title-row {
     display: grid;
+
     gap: 8px;
+
     justify-items: start;
   }
 
   .badge {
     max-width: 100%;
+
     white-space: normal;
+
     text-align: center;
   }
 
   .tabs {
     padding-bottom: 8px;
   }
+}
+
+/*
+  =========================
+  PLANILLAS
+  ESTILO
+  EXCEL
+  \=========================
+  */
+.planillas-tabs {
+  display: flex;
+
+  gap: 8px;
+
+  flex-wrap: wrap;
+
+  margin-bottom: 18px;
+}
+
+.planillas-tabs button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  background: var(--panel);
+
+  color: inherit;
+
+  padding: 8px 14px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.planillas-tabs button:hover {
+  transform: translateY(-1px);
+}
+
+.planillas-tabs button.active {
+  background: #8b3dff;
+
+  color: white;
+}
+
+.excel-container {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border-radius: 12px;
+}
+
+.excel-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 900px;
+}
+
+.excel-table th {
+  background: rgba(139, 61, 255, 0.15);
+
+  font-weight: 700;
+
+  text-align: left;
+
+  padding: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.excel-table td {
+  padding: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  cursor: pointer;
+}
+
+.excel-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.excel-table input {
+  width: 100%;
+
+  background: transparent;
+
+  color: inherit;
+
+  border: 1px solid #8b3dff;
+
+  border-radius: 6px;
+
+  padding: 6px;
+}
+
+.excel-save {
+  padding: 6px 12px;
+
+  border-radius: 8px;
+
+  border: none;
+
+  cursor: pointer;
+
+  background: #8b3dff;
+
+  color: white;
+}
+
+/*
+  =========================
+  AJUSTE
+  PLANILLAS
+  COMPACTAS
+  \=========================
+  */
+.excel-table {
+  font-size: 14px;
+}
+
+.excel-table th {
+  padding: 9px 10px;
+
+  white-space: nowrap;
+}
+
+.excel-table td {
+  padding: 8px 10px;
+
+  white-space: nowrap;
+}
+
+.excel-table td,
+.excel-table th {
+  word-break: normal;
+}
+
+.excel-table input {
+  min-width: 90px;
+
+  padding: 5px 7px;
+}
+
+.excel-table .btn,
+.excel-table button {
+  padding: 7px 12px;
+
+  font-size: 13px;
+}
+
+.excel-container {
+  max-height: 650px;
+
+  overflow: auto;
+}
+
+/*
+  ==============================
+  PLANILLAS
+  -
+  MODO
+  ANCHO
+  \==============================
+  */
+.app-content--planillas {
+  width: 100%;
+
+  max-width: none;
+
+  padding-left: 12px;
+
+  padding-right: 12px;
+}
+
+.planillas-page {
+  width: 100%;
+
+  max-width: none;
+
+  grid-template-columns: minmax(0, 1fr);
+
+  margin: 0;
+}
+
+.planillas-panel {
+  width: 100%;
+
+  max-width: none;
+
+  padding: 16px 18px;
+}
+
+.planillas-panel .excel-container {
+  width: 100%;
+
+  max-width: 100%;
+}
+
+.planillas-panel .excel-table {
+  width: 100%;
+}
+
+/*
+  ==============================
+  PLANILLAS
+  -
+  BARRA
+  OCULTA
+  \==============================
+  */
+.app-shell--collapsed:has(.app-content--planillas) {
+  grid-template-columns: 0 minmax(0, 1fr);
+
+  gap: 0;
+}
+
+.app-shell--collapsed:has(.app-content--planillas) .sidebar {
+  width: 0;
+
+  min-width: 0;
+
+  padding: 0;
+
+  border: 0;
+
+  opacity: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.app-content--planillas {
+  width: 100%;
+
+  max-width: none;
+
+  padding: 18px;
+}
+
+.planillas-page {
+  width: 100%;
+
+  max-width: none;
+
+  margin: 0;
+}
+
+.planillas-panel {
+  width: 100%;
+
+  max-width: none;
+}
+
+.planillas-topbar {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.planillas-topbar h2 {
+  margin: 0 0 4px;
+}
+
+.planillas-topbar p {
+  margin: 0;
+}
+
+.planillas-menu-btn {
+  flex-shrink: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  background: #8b3dff;
+
+  color: #fff;
+
+  border-radius: 10px;
+
+  padding: 9px 14px;
+
+  font: inherit;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.planillas-menu-btn:hover {
+  transform: translateY(-1px);
+
+  filter: brightness(1.08);
+}
+
+.excel-table--grouped td[rowspan] {
+  vertical-align: middle;
+
+  font-weight: 600;
+
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.excel-table--grouped tr + tr td {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/*
+  =========================================
+  PLANILLAS
+  -
+  CENTRADO
+  Y
+  EDICIÓN
+  ESTABLE
+  \=========================================
+  */
+.excel-table {
+  table-layout: auto;
+}
+
+.excel-table th,
+.excel-table td {
+  text-align: center;
+
+  vertical-align: middle;
+}
+
+.excel-table--grouped th,
+.excel-table--grouped td {
+  text-align: center;
+
+  vertical-align: middle;
+
+  white-space: nowrap;
+}
+
+/* Anchos estables de Netflix Privado */
+.excel-table--grouped .col-card {
+  min-width: 130px;
+
+  width: 130px;
+}
+
+.excel-table--grouped .col-email {
+  min-width: 200px;
+
+  width: 200px;
+}
+
+.excel-table--grouped .col-password {
+  min-width: 150px;
+
+  width: 150px;
+}
+
+.excel-table--grouped .col-name {
+  min-width: 135px;
+
+  width: 135px;
+}
+
+.excel-table--grouped .col-profile {
+  min-width: 85px;
+
+  width: 85px;
+}
+
+.excel-table--grouped .col-pin {
+  min-width: 65px;
+
+  width: 65px;
+}
+
+.excel-table--grouped .col-device {
+  min-width: 125px;
+
+  width: 125px;
+}
+
+.excel-table--grouped .col-contact {
+  min-width: 105px;
+
+  width: 105px;
+}
+
+.excel-table--grouped .col-date {
+  min-width: 165px;
+
+  width: 165px;
+}
+
+.excel-table--grouped .col-note {
+  min-width: 110px;
+
+  width: 110px;
+}
+
+/* Celdas agrupadas */
+.excel-table--grouped .account-cell {
+  vertical-align: middle;
+
+  font-weight: 600;
+
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Input al editar */
+.excel-edit-input {
+  display: block;
+
+  width: 100%;
+
+  min-width: 0;
+
+  max-width: 100%;
+
+  height: 30px;
+
+  box-sizing: border-box;
+
+  padding: 4px 6px;
+
+  border: 1px solid #8b3dff;
+
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: inherit;
+
+  font: inherit;
+
+  font-size: 13px;
+
+  text-align: center;
+
+  outline: none;
+}
+
+.excel-edit-input:focus {
+  box-shadow: 0 0 0 2px rgba(139, 61, 255, 0.2);
+}
+
+/*
+  ==========================================
+  PLANILLAS
+  -
+  DISEÑO
+  SIN
+  SCROLL
+  INTERNO
+  \==========================================
+  */
+.planillas-content {
+  width: 100%;
+
+  overflow: visible;
+}
+
+.planilla-account {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(230px, 1.15fr)
+    minmax(0, 4.85fr);
+
+  align-items: stretch;
+
+  margin-bottom: 22px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.planilla-account-table,
+.planilla-members-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+.planilla-account-table {
+  border-right: 2px solid rgba(139, 61, 255, 0.45);
+}
+
+.planilla-account-table th,
+.planilla-account-table td,
+.planilla-members-table th,
+.planilla-members-table td {
+  height: 38px;
+
+  padding: 5px 6px;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  text-align: center;
+
+  vertical-align: middle;
+
+  font-size: 12px;
+
+  overflow-wrap: anywhere;
+}
+
+.planilla-account-table thead th,
+.planilla-members-table thead th {
+  background: rgba(93, 48, 145, 0.38);
+
+  color: inherit;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.planilla-account-table tbody th {
+  width: 38%;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.planilla-account-table tbody td {
+  width: 62%;
+}
+
+.planilla-members-table th:nth-child(1) {
+  width: 15%;
+}
+
+.planilla-members-table th:nth-child(2) {
+  width: 10%;
+}
+
+.planilla-members-table th:nth-child(3) {
+  width: 7%;
+}
+
+.planilla-members-table th:nth-child(4) {
+  width: 12%;
+}
+
+.planilla-members-table th:nth-child(5) {
+  width: 13%;
+}
+
+.planilla-members-table th:nth-child(6) {
+  width: 15%;
+}
+
+.planilla-members-table th:nth-child(7) {
+  width: 17%;
+}
+
+.planilla-members-table th:nth-child(8) {
+  width: 11%;
+}
+
+.planilla-editable-text {
+  display: block;
+
+  width: 100%;
+
+  cursor: text;
+
+  overflow-wrap: anywhere;
+}
+
+.planilla-cell-input,
+.planilla-status-select {
+  width: 100%;
+
+  min-width: 0;
+
+  max-width: 100%;
+
+  height: 27px;
+
+  box-sizing: border-box;
+
+  padding: 3px 5px;
+
+  border: 1px solid #8b3dff;
+
+  border-radius: 5px;
+
+  background: var(--panel);
+
+  color: inherit;
+
+  font: inherit;
+
+  font-size: 11px;
+
+  text-align: center;
+
+  outline: none;
+}
+
+.planilla-cell-input:focus,
+.planilla-status-select:focus {
+  box-shadow: 0 0 0 2px rgba(139, 61, 255, 0.18);
+}
+
+/* Estados */
+.planilla-status {
+  display: inline-flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  min-width: 78px;
+
+  padding: 3px 7px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.planilla-status--habilitado {
+  background: rgba(24, 200, 90, 0.2);
+
+  color: #45df82;
+}
+
+.planilla-status--pendiente {
+  background: rgba(255, 193, 7, 0.2);
+
+  color: #ffd24a;
+}
+
+.planilla-status--deshabilitado,
+.planilla-status--vencido {
+  background: rgba(255, 75, 75, 0.2);
+
+  color: #ff7777;
+}
+
+/*
+  Quitamos
+  scroll
+  interno
+  que
+  tenía
+  la
+  tabla
+  anterior
+  */
+.planillas-panel .excel-container {
+  max-height: none;
+
+  overflow: visible;
+}
+
+/* Buscador */
+.planillas-search {
+  max-width: none;
+
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1050px) {
+  .planilla-account {
+    grid-template-columns:
+      minmax(190px, 1fr)
+      minmax(0, 4fr);
+  }
+
+  .planilla-account-table th,
+  .planilla-account-table td,
+  .planilla-members-table th,
+  .planilla-members-table td {
+    padding: 4px;
+
+    font-size: 10px;
+  }
+
+  .planilla-status {
+    min-width: 60px;
+
+    padding: 3px 4px;
+
+    font-size: 9px;
+  }
+}
+
+/*
+  ==========================================
+  PLANILLAS
+  -
+  AJUSTES
+  DE
+  DISTRIBUCIÓN
+  \==========================================
+  */
+/*
+  Más
+  espacio
+  para
+  los
+  datos
+  de
+  la
+  cuenta
+  */
+.planilla-account {
+  grid-template-columns:
+    minmax(310px, 1.5fr)
+    minmax(0, 4.5fr);
+}
+
+/* Etiqueta izquierda: Email, Contraseña, etc. */
+
+.planilla-account-table tbody th {
+  width: 34%;
+}
+
+/* Valor derecho */
+.planilla-account-table tbody td {
+  width: 66%;
+
+  white-space: normal;
+
+  overflow-wrap: anywhere;
+}
+
+/*
+  El
+  texto
+  editable
+  utiliza
+  todo
+  el
+  ancho
+  */
+.planilla-account-table .planilla-editable-text {
+  width: 100%;
+
+  display: block;
+}
+
+/* Cursor indicando que puede editarse */
+.planilla-editable-text {
+  cursor: pointer;
+}
+
+/*
+  =============================
+  COLUMNAS
+  DE
+  CLIENTES
+  \=============================
+  */
+.planilla-members-table th:nth-child(1) {
+  width: 15%;
+}
+
+.planilla-members-table th:nth-child(2) {
+  width: 10%;
+}
+
+.planilla-members-table th:nth-child(3) {
+  width: 7%;
+}
+
+.planilla-members-table th:nth-child(4) {
+  width: 12%;
+}
+
+.planilla-members-table th:nth-child(5) {
+  width: 13%;
+}
+
+.planilla-members-table th:nth-child(6) {
+  width: 15%;
+}
+
+/* Estado */
+.planilla-members-table th:nth-child(7) {
+  width: 12%;
+}
+
+/* Observaciones */
+.planilla-members-table th:nth-child(8) {
+  width: 16%;
+}
+
+@media (max-width: 1050px) {
+  .planilla-account {
+    grid-template-columns:
+      minmax(260px, 1.35fr)
+      minmax(0, 4.65fr);
+  }
+}
+
+/*
+  =====================================
+  SELECTOR
+  DE
+  ESTADO
+  -
+  PLANILLAS
+  \=====================================
+  */
+.planilla-status-select {
+  width: 100%;
+
+  min-width: 100px;
+
+  height: 29px;
+
+  box-sizing: border-box;
+
+  padding: 3px 6px;
+
+  border: 1px solid #8b3dff;
+
+  border-radius: 6px;
+
+  background: #202027;
+
+  color: #f5f5f7;
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  outline: none;
+
+  cursor: pointer;
+
+  color-scheme: dark;
+}
+
+.planilla-status-select option {
+  background: #202027;
+
+  color: #f5f5f7;
+}
+
+button.planilla-status {
+  border: none;
+
+  font-family: inherit;
+}
+
+html[data-theme='light'] .planilla-status-select {
+  background: #ffffff;
+
+  color: #202027;
+
+  color-scheme: light;
+}
+
+html[data-theme='light'] .planilla-status-select option {
+  background: #ffffff;
+
+  color: #202027;
+}
+
+.planilla-status--disponible {
+  background: rgba(50, 160, 255, 0.18);
+
+  color: #59c8ff;
+
+  border: 1px solid rgba(89, 200, 255, 0.35);
+}
+
+.planilla-members-table .planilla-row-match td {
+  background: rgba(139, 61, 255, 0.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(180, 120, 255, 0.35),
+    inset 0 -1px 0 rgba(180, 120, 255, 0.35);
+
+  animation: rowGlow 1.2s infinite alternate;
+}
+
+@keyframes rowGlow {
+  from {
+    filter: brightness(1);
+  }
+
+  to {
+    filter: brightness(1.15);
+  }
+}
+
+.planilla-members-table .planilla-row-match td {
+  background: rgba(139, 61, 255, 0.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(180, 120, 255, 0.35),
+    inset 0 -1px 0 rgba(180, 120, 255, 0.35);
+
+  animation: planillaGlow 1s infinite alternate;
+}
+
+@keyframes planillaGlow {
+  from {
+    filter: brightness(1);
+  }
+
+  to {
+    filter: brightness(1.18);
+  }
+}
+
+.planilla-status--disponible {
+  background: rgba(50, 160, 255, 0.18);
+
+  color: #59c8ff;
+
+  border: 1px solid rgba(89, 200, 255, 0.35);
+}
+
+/* Ajuste de tablas Planillas */
+.planilla-account {
+  display: flex;
+
+  align-items: stretch;
+}
+
+.planilla-account-table {
+  width: 260px;
+
+  table-layout: fixed;
+
+  border-collapse: collapse;
+}
+
+.planilla-account-table th,
+.planilla-account-table td {
+  width: 50%;
+
+  text-align: center;
+
+  vertical-align: middle;
+}
+
+.planilla-members-table {
+  flex: 1;
+
+  table-layout: fixed;
+
+  border-collapse: collapse;
+}
+
+.planilla-members-table th,
+.planilla-members-table td {
+  text-align: center;
+
+  vertical-align: middle;
+}
+
+/* quitar línea morada exagerada */
+.planilla-account-table {
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.planilla-account-table td {
+  border-right: none;
+}
+
+/* evitar columnas deformadas */
+.planilla-members-table th,
+.planilla-members-table td,
+.planilla-account-table th,
+.planilla-account-table td {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* ==========================================
+   FIX FINAL ALINEACION PLANILLAS
+   ========================================== */
+
+.planilla-account {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  gap: 0;
+}
+
+.planilla-account-table {
+  width: 310px;
+  flex-shrink: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.planilla-members-table {
+  flex: 1;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.planilla-account-table th,
+.planilla-account-table td,
+.planilla-members-table th,
+.planilla-members-table td {
+  height: 38px;
+  padding: 5px 6px;
+  text-align: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.planilla-account-table *,
+.planilla-members-table * {
+  box-sizing: border-box;
+}
+
+.planilla-account-table th {
+  width: 38%;
+}
+
+.planilla-account-table td {
+  width: 62%;
+}
+
+.planilla-members-table th:nth-child(1) {
+  width: 15%;
+}
+.planilla-members-table th:nth-child(2) {
+  width: 10%;
+}
+.planilla-members-table th:nth-child(3) {
+  width: 7%;
+}
+.planilla-members-table th:nth-child(4) {
+  width: 12%;
+}
+.planilla-members-table th:nth-child(5) {
+  width: 13%;
+}
+.planilla-members-table th:nth-child(6) {
+  width: 15%;
+}
+.planilla-members-table th:nth-child(7) {
+  width: 12%;
+}
+.planilla-members-table th:nth-child(8) {
+  width: 16%;
+}
+
+.planilla-account-table td,
+.planilla-account-table th,
+.planilla-members-table td,
+.planilla-members-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   PLANILLAS - EDICION ESTILO EXCEL
+   ========================================== */
+
+.planilla-members-table td,
+.planilla-account-table td {
+  position: relative;
+  padding: 0;
+}
+
+.planilla-editable-text {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 6px;
+}
+
+.planilla-cell-input,
+.planilla-status-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 5px 8px;
+  border: 2px solid #2f80ff;
+  border-radius: 0;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  outline: none;
+  box-sizing: border-box;
+  z-index: 5;
+}
+
+.planilla-cell-input:focus,
+.planilla-status-select:focus {
+  border-color: #2f80ff;
+  box-shadow: 0 0 0 1px rgba(47, 128, 255, 0.25);
+}
+
+/* ==========================================
+   PLANILLAS - AGREGAR CLIENTES + ANCHO CUENTA
+   Pegar al FINAL de src/styles.css
+   ========================================== */
+
+.planilla-account-block {
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.planilla-account-block .planilla-account {
+  margin-bottom: 0;
+  align-items: flex-start;
+}
+
+/* Más espacio para Cuenta / Datos */
+.planilla-account-table {
+  width: 360px;
+  flex: 0 0 360px;
+  table-layout: fixed;
+}
+
+/* El colgroup controla realmente las dos columnas */
+.planilla-account-label-col {
+  width: 34%;
+}
+
+.planilla-account-data-col {
+  width: 66%;
+}
+
+/* Anula reglas antiguas de 38/62 o 50/50 */
+.planilla-account-table th,
+.planilla-account-table td {
+  width: auto;
+}
+
+/* Mantiene los datos en una línea y usa puntos suspensivos solo si no caben */
+.planilla-account-table .planilla-editable-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mantener la cuadrícula alineada al agregar más personas */
+.planilla-account-spacer-row th,
+.planilla-account-spacer-row td,
+.planilla-member-empty-row td {
+  height: 38px;
+}
+
+/* Zona del botón */
+.planilla-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.planilla-add-member-btn {
+  border: 1px solid rgba(145, 70, 255, 0.5);
+  border-radius: 9px;
+  background: rgba(145, 70, 255, 0.14);
+  color: inherit;
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.planilla-add-member-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(145, 70, 255, 0.24);
+  border-color: #9146ff;
+}
+
+@media (max-width: 1050px) {
+  .planilla-account-table {
+    width: 320px;
+    flex-basis: 320px;
+  }
+}
+
+/* ==========================================
+   PLANILLAS - AJUSTES FILAS, CELDAS AGRUPADAS Y TAB
+   Pegar al FINAL de src/styles.css
+   ========================================== */
+
+/* La tabla Cuenta/Datos conserva solo sus 5 filas.
+   Si hay más clientes, la tabla de la derecha puede crecer sola. */
+.planilla-account {
+  align-items: flex-start;
+}
+
+/* Perfil y PIN combinados: centrar en todo el alto del rowspan. */
+.planilla-profile-group-cell {
+  position: relative;
+  padding: 0 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.planilla-group-cell-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 6px;
+}
+
+.planilla-group-cell-content .planilla-editable-text {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  text-align: center;
+}
+
+/* Al editar Perfil o PIN combinados, el borde azul ocupa toda la celda. */
+.planilla-group-cell-content .planilla-cell-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+
+/* ==========================================================
+   PLANILLAS - TABLA ÚNICA
+   Las 2 primeras filas usan una grid independiente dentro
+   de la misma tabla. Las columnas de arriba NO tienen que
+   coincidir con las columnas de clientes.
+   ========================================================== */
+
+.planilla-account-block {
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.planilla-main-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+/* Anchos exclusivos de la sección de clientes */
+.planilla-main-table .planilla-col-name {
+  width: 15%;
+}
+
+.planilla-main-table .planilla-col-profile {
+  width: 10%;
+}
+
+.planilla-main-table .planilla-col-pin {
+  width: 7%;
+}
+
+.planilla-main-table .planilla-col-device {
+  width: 12%;
+}
+
+.planilla-main-table .planilla-col-contact {
+  width: 13%;
+}
+
+.planilla-main-table .planilla-col-date {
+  width: 15%;
+}
+
+.planilla-main-table .planilla-col-status {
+  width: 12%;
+}
+
+.planilla-main-table .planilla-col-note {
+  width: 16%;
+}
+
+.planilla-main-table th,
+.planilla-main-table td {
+  height: 38px;
+  padding: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.planilla-main-table th:last-child,
+.planilla-main-table td:last-child {
+  border-right: 0;
+}
+
+/* ----------------------------------------------------------
+   Dos primeras filas: cuenta
+   ---------------------------------------------------------- */
+
+.planilla-account-grid-row,
+.planilla-account-grid-row > th,
+.planilla-account-grid-row > td {
+  height: 38px;
+}
+
+.planilla-account-grid-wrapper {
+  padding: 0 !important;
+  border-right: 0 !important;
+  overflow: visible !important;
+}
+
+.planilla-account-grid {
+  display: grid;
+  width: 100%;
+  height: 38px;
+
+  /*
+    Reparto independiente de las columnas inferiores:
+    Cuenta | Email | Contraseña | Fecha | Tarjeta | Estado | Ubicación
+
+    Email y Fecha reciben más espacio porque suelen ser
+    los datos más largos.
+  */
+  grid-template-columns:
+    minmax(0, 0.78fr)
+    minmax(0, 1.45fr)
+    minmax(0, 0.95fr)
+    minmax(0, 1.45fr)
+    minmax(0, 1.08fr)
+    minmax(0, 0.9fr)
+    minmax(0, 1.3fr);
+}
+
+.planilla-account-grid-cell {
+  position: relative;
+  min-width: 0;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 7px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planilla-account-grid-cell:last-child {
+  border-right: 0;
+}
+
+.planilla-account-grid--headers .planilla-account-grid-cell {
+  background: rgba(93, 48, 145, 0.38);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.planilla-account-grid--values .planilla-account-grid-cell {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.planilla-account-grid-label {
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+/* El texto normal usa todo el ancho de la celda superior */
+.planilla-account-grid-value .planilla-editable-text {
+  width: 100%;
+  height: 100%;
+  padding: 5px 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Email, fecha, etc. pueden envolver si realmente no caben */
+.planilla-account-grid-value {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Estado de cuenta centrado */
+.planilla-account-status-cell {
+  overflow: visible;
+}
+
+.planilla-account-status-cell .planilla-status {
+  max-width: calc(100% - 8px);
+}
+
+/* Input tipo Excel también en la franja superior */
+.planilla-account-grid-value .planilla-cell-input,
+.planilla-account-grid-value .planilla-status-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+
+/* ----------------------------------------------------------
+   Cabecera y filas de clientes
+   ---------------------------------------------------------- */
+
+.planilla-members-header th {
+  background: rgba(93, 48, 145, 0.38);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 6px;
+  white-space: nowrap;
+}
+
+.planilla-main-table tbody td {
+  position: relative;
+  height: 38px;
+}
+
+.planilla-main-table tbody .planilla-editable-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 6px;
+}
+
+/* Perfil y PIN combinados en Netflix Compartido */
+.planilla-main-table .planilla-profile-group-cell {
+  position: relative;
+  padding: 0 !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+.planilla-main-table .planilla-group-cell-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.planilla-main-table .planilla-group-cell-content .planilla-editable-text {
+  padding: 5px 6px;
+}
+
+/* Filas vacías de apoyo */
+.planilla-main-table .planilla-member-empty-row td {
+  height: 38px;
+}
+
+/* Botón Agregar cliente solo se renderiza para Netflix Compartido */
+.planilla-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+/* En pantallas más angostas reducimos tipografía/padding,
+   pero seguimos sin crear scroll horizontal interno. */
+@media (max-width: 1050px) {
+  .planilla-main-table {
+    font-size: 10px;
+  }
+
+  .planilla-account-grid-cell,
+  .planilla-members-header th,
+  .planilla-main-table tbody .planilla-editable-text {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .planilla-account-grid {
+    grid-template-columns:
+      minmax(0, 0.72fr)
+      minmax(0, 1.4fr)
+      minmax(0, 0.9fr)
+      minmax(0, 1.4fr)
+      minmax(0, 1fr)
+      minmax(0, 0.9fr)
+      minmax(0, 1.25fr);
+  }
+}
+
+/* ==========================================================
+   PLANILLAS - BORDE COMPLETO + ELIMINAR CLIENTE COMPARTIDO
+   ========================================================== */
+
+/* El perímetro de la tabla siempre queda visible. */
+.planilla-main-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* Líneas internas consistentes tanto en tema oscuro como claro. */
+.planilla-main-table th,
+.planilla-main-table td {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* La línea exterior la dibuja la propia tabla. */
+.planilla-main-table tr > :last-child {
+  border-right: 0;
+}
+
+.planilla-main-table tbody tr:last-child > td {
+  border-bottom: 0;
+}
+
+/* Las dos filas superiores también usan el mismo tono de cuadrícula. */
+.planilla-account-grid-cell {
+  border-right: 1px solid var(--line);
+}
+
+.planilla-account-grid-cell:last-child {
+  border-right: 0;
+}
+
+/* Observaciones puede contener el botón de eliminar en Netflix Compartido. */
+.planilla-note-cell {
+  position: relative;
+}
+
+.planilla-note-cell--deletable .planilla-editable-text,
+.planilla-note-cell--deletable .planilla-cell-input {
+  padding-right: 30px;
+}
+
+/* Botón pequeño: elimina únicamente esa persona/fila. */
+.planilla-delete-member-btn {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  z-index: 9;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid rgba(220, 38, 38, 0.38);
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.72;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    background 0.16s ease;
+}
+
+.planilla-delete-member-btn:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.planilla-delete-member-btn:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 1px;
+}
+
+/* Evita que el botón global de móvil lo estire al 100%. */
+@media (max-width: 460px) {
+  .planilla-delete-member-btn {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ==========================================================
+   PLANILLAS - CHATGPT PLUS
+   ========================================================== */
+
+.planilla-main-table--chatgpt .chatgpt-col-name {
+  width: 18%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-device {
+  width: 24%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-date {
+  width: 14%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-contact {
+  width: 13%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-login {
+  width: 24%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-payment {
+  width: 7%;
+}
+
+/* Las dos primeras filas tienen sus propios anchos. */
+.planilla-main-table--chatgpt .chatgpt-account-grid {
+  grid-template-columns:
+    minmax(0, 0.75fr)
+    minmax(0, 1.45fr)
+    minmax(0, 0.95fr)
+    minmax(0, 1.35fr)
+    minmax(0, 1.15fr)
+    minmax(0, 0.9fr)
+    minmax(0, 1.05fr);
+}
+
+.chatgpt-total-devices {
+  font-weight: 900;
+}
+
+/* ----------------------------------------------------------
+   Estado del cliente como punto de color junto al nombre
+   ---------------------------------------------------------- */
+
+.chatgpt-name-cell {
+  position: relative;
+  min-height: 38px;
+}
+
+.chatgpt-name-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.chatgpt-name-editor .planilla-editable-text,
+.chatgpt-name-editor .planilla-cell-input {
+  padding-left: 31px;
+  padding-right: 31px;
+}
+
+.chatgpt-client-status-dot {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  z-index: 10;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.18);
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+.chatgpt-client-status-dot:hover {
+  transform: translateY(-50%) scale(1.12);
+  filter: brightness(1.12);
+}
+
+.chatgpt-client-status-dot--habilitado {
+  background: #22c55e;
+}
+
+.chatgpt-client-status-dot--pendiente {
+  background: #f59e0b;
+}
+
+.chatgpt-client-status-dot--deshabilitado {
+  background: #ef4444;
+}
+
+/* Eliminar fila desde la misma celda del nombre. */
+.chatgpt-delete-member-btn {
+  right: 6px;
+}
+
+/* ----------------------------------------------------------
+   Varios dispositivos / varios registros de ingreso
+   separados visualmente por una línea
+   ---------------------------------------------------------- */
+
+.chatgpt-stacked-cell {
+  padding: 0 !important;
+  vertical-align: middle !important;
+}
+
+.chatgpt-stacked-display {
+  position: relative;
+  width: 100%;
+  min-height: 38px;
+  display: grid;
+  cursor: text;
+}
+
+.chatgpt-stacked-item {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 7px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.chatgpt-stacked-item + .chatgpt-stacked-item {
+  border-top: 1px solid var(--line);
+}
+
+/* Si una persona tiene 2 o 3 dispositivos, toda la fila crece
+   y las demás columnas quedan centradas verticalmente. */
+.planilla-main-table--chatgpt tbody td {
+  height: 38px;
+  vertical-align: middle;
+}
+
+/* El input ocupa toda la celda también en campos apilados. */
+.chatgpt-stacked-cell .planilla-cell-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* En móvil mantenemos los controles pequeños. */
+@media (max-width: 1050px) {
+  .planilla-main-table--chatgpt .chatgpt-account-grid {
+    grid-template-columns:
+      minmax(0, 0.7fr)
+      minmax(0, 1.35fr)
+      minmax(0, 0.9fr)
+      minmax(0, 1.25fr)
+      minmax(0, 1fr)
+      minmax(0, 0.85fr)
+      minmax(0, 1fr);
+  }
+
+  .chatgpt-client-status-dot {
+    left: 5px;
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+  }
+
+  .chatgpt-name-editor .planilla-editable-text,
+  .chatgpt-name-editor .planilla-cell-input {
+    padding-left: 24px;
+    padding-right: 27px;
+  }
+}
+
+/* ==========================================================
+   CHATGPT PLUS - ESTADO MÁS GRANDE + TOTAL DE PAGOS
+   ========================================================== */
+
+/* Punto de estado más grande para que sea más fácil hacer clic. */
+.chatgpt-client-status-dot {
+  left: 7px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-width: 2px;
+}
+
+/* Dar espacio adicional al nombre para el indicador más grande. */
+.chatgpt-name-editor .planilla-editable-text,
+.chatgpt-name-editor .planilla-cell-input {
+  padding-left: 38px;
+  padding-right: 31px;
+}
+
+/* Total de pagos al final, alineado con Registro de Ingreso y Pagos. */
+.planilla-main-table--chatgpt tfoot td {
+  height: 38px;
+  border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.planilla-main-table--chatgpt tfoot td:last-child {
+  border-right: 0;
+}
+
+.chatgpt-payment-total-label {
+  text-align: center;
+  font-weight: 900;
+}
+
+.chatgpt-payment-total-value {
+  text-align: center;
+  font-weight: 900;
+}
+
+/* En pantallas más estrechas sigue siendo fácil de pulsar. */
+@media (max-width: 1050px) {
+  .chatgpt-client-status-dot {
+    left: 5px;
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+  }
+
+  .chatgpt-name-editor .planilla-editable-text,
+  .chatgpt-name-editor .planilla-cell-input {
+    padding-left: 32px;
+    padding-right: 27px;
+  }
+}
+
+/* ==========================================================
+   PLANILLAS - ESTADO EN NOMBRE + ELIMINACIÓN CON CONFIRMACIÓN
+   ========================================================== */
+
+/* Netflix ahora usa 7 columnas y Observaciones recibe el espacio de Estado. */
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-name {
+  width: 15%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-profile {
+  width: 10%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-pin {
+  width: 7%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-device {
+  width: 11%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-contact {
+  width: 12%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-date {
+  width: 15%;
+}
+
+.planilla-main-table:not(.planilla-main-table--chatgpt) .planilla-col-note {
+  width: 30%;
+}
+
+/* Celda del nombre: eliminar a la izquierda y estado a la derecha. */
+.planilla-name-cell,
+.chatgpt-name-cell {
+  position: relative;
+  overflow: visible !important;
+}
+
+.planilla-name-editor,
+.chatgpt-name-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.planilla-name-editor .planilla-editable-text,
+.planilla-name-editor .planilla-cell-input,
+.chatgpt-name-editor .planilla-editable-text,
+.chatgpt-name-editor .planilla-cell-input {
+  padding-left: 38px;
+  padding-right: 42px;
+}
+
+/* Netflix Privado no tiene X, pero conservamos el espacio visual
+   de la izquierda para que los nombres sigan centrados. */
+.planilla-main-table:not(.planilla-main-table--chatgpt)
+  .planilla-name-cell
+  .planilla-name-editor {
+  width: 100%;
+}
+
+/* Punto de estado a la DERECHA. */
+.member-status-dot {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 11;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 2px solid rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+.member-status-dot:hover {
+  transform: translateY(-50%) scale(1.12);
+  filter: brightness(1.12);
+}
+
+.member-status-dot--habilitado {
+  background: #22c55e;
+}
+
+.member-status-dot--pendiente {
+  background: #f59e0b;
+}
+
+.member-status-dot--deshabilitado {
+  background: #ef4444;
+}
+
+.member-status-dot--disponible {
+  background: #38bdf8;
+}
+
+/* X de eliminar a la IZQUIERDA. */
+.member-delete-left {
+  left: 7px !important;
+  right: auto !important;
+}
+
+/* Confirmación de borrado: aparece sobre la misma fila. */
+.member-delete-confirm {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  z-index: 30;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px;
+  transform: translateY(-50%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+.member-delete-confirm-btn {
+  width: auto !important;
+  min-width: 0;
+  height: 24px;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--ghost);
+  color: var(--text);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.member-delete-confirm-btn--yes {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.member-delete-confirm-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* El viejo posicionamiento específico de ChatGPT ya no aplica. */
+.chatgpt-delete-member-btn {
+  left: 7px;
+  right: auto;
+}
+
+/* Observaciones ahora dispone de más espacio. */
+.planilla-note-cell .planilla-editable-text,
+.planilla-note-cell .planilla-cell-input {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* En pantallas más angostas mantenemos los controles fáciles de pulsar. */
+@media (max-width: 1050px) {
+  .member-status-dot {
+    right: 5px;
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+  }
+
+  .member-delete-left {
+    left: 5px !important;
+  }
+
+  .planilla-name-editor .planilla-editable-text,
+  .planilla-name-editor .planilla-cell-input,
+  .chatgpt-name-editor .planilla-editable-text,
+  .chatgpt-name-editor .planilla-cell-input {
+    padding-left: 31px;
+    padding-right: 34px;
+  }
+
+  .member-delete-confirm {
+    left: 3px;
+  }
+}
+
+/* ==========================================================
+   NETFLIX PRIVADO - VACIAR FILA
+   CHATGPT PLUS - OBSERVACIONES
+   ========================================================== */
+
+/* Netflix Privado ahora también muestra la X a la izquierda.
+   Al confirmar, la fila NO desaparece: queda vacía y Disponible. */
+.planilla-main-table:not(.planilla-main-table--chatgpt)
+  .planilla-name-cell
+  .member-delete-left {
+  left: 7px !important;
+}
+
+/* ==========================================================
+   CHATGPT PLUS - NUEVA COLUMNA OBSERVACIONES
+   Repartimos el ancho sin añadir scroll horizontal.
+   ========================================================== */
+
+.planilla-main-table--chatgpt .chatgpt-col-name {
+  width: 15%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-device {
+  width: 19%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-date {
+  width: 12%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-contact {
+  width: 10%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-login {
+  width: 19%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-payment {
+  width: 7%;
+}
+
+.planilla-main-table--chatgpt .chatgpt-col-note {
+  width: 18%;
+}
+
+/* Observaciones admite texto más largo y puede crecer en altura
+   sin ensanchar toda la tabla. */
+.chatgpt-note-cell {
+  position: relative;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chatgpt-note-cell .planilla-editable-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  padding: 6px 8px;
+}
+
+/* Al editar sigue usando el borde azul de la celda completa. */
+.chatgpt-note-cell .planilla-cell-input {
+  white-space: normal;
+}
+
+/* La fila del total conserva la cuadrícula con la nueva columna. */
+.planilla-main-table--chatgpt tfoot td {
+  vertical-align: middle;
+}
+
+/* ==========================================================
+   PLANILLAS - SELECTOR RÁPIDO DE ESTADO POR COLOR
+   ========================================================== */
+
+.member-status-control {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 20;
+  transform: translateY(-50%);
+}
+
+/* El punto sigue siendo grande y fácil de pulsar. */
+.member-status-control .member-status-dot {
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none;
+}
+
+.member-status-control .member-status-dot:hover {
+  transform: scale(1.12);
+}
+
+/* Menú que se despliega hacia la izquierda para no salir de la tabla. */
+.member-status-picker {
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  z-index: 50;
+  width: 142px;
+  display: grid;
+  gap: 3px;
+  padding: 5px;
+  transform: translateY(-50%);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--field);
+  box-shadow: var(--shadow);
+}
+
+.member-status-option {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.member-status-option:hover,
+.member-status-option.active {
+  border-color: var(--line);
+  background: var(--ghost);
+}
+
+.member-status-option-dot {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+
+.member-status-option-dot--habilitado {
+  background: #22c55e;
+}
+
+.member-status-option-dot--pendiente {
+  background: #f59e0b;
+}
+
+.member-status-option-dot--deshabilitado {
+  background: #ef4444;
+}
+
+.member-status-option-dot--disponible {
+  background: #38bdf8;
+}
+
+/* ==========================================================
+   PLANILLAS - COLORES DE PLATAFORMAS EN LAS PESTAÑAS
+   ========================================================== */
+
+.planillas-tabs button[data-sheet] {
+  color: #ffffff;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: none;
+}
+
+/* Netflix Privado: rojo oscuro */
+.planillas-tabs button[data-sheet='Netflix Privado'] {
+  background: #7a1118;
+  border-color: #a51d27;
+}
+
+/* Netflix Compartido: rojo más claro para diferenciarlo */
+.planillas-tabs button[data-sheet='Netflix Compartido'] {
+  background: #c92b37;
+  border-color: #e24a54;
+}
+
+/* Prime Video */
+.planillas-tabs button[data-sheet='Prime Video'] {
+  background: #0096c7;
+  border-color: #25b9e8;
+}
+
+/* HBO Max */
+.planillas-tabs button[data-sheet='HBO Max'] {
+  background: #5b2bbf;
+  border-color: #8154e6;
+}
+
+/* ChatGPT */
+.planillas-tabs button[data-sheet='ChatGPT Plus'] {
+  background: #0f8f70;
+  border-color: #28b995;
+}
+
+/* La pestaña activa conserva su color, pero se distingue claramente. */
+.planillas-tabs button[data-sheet].active {
+  color: #ffffff;
+  filter: brightness(1.12);
+  box-shadow:
+    0 0 0 2px var(--field),
+    0 0 0 4px rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.planillas-tabs button[data-sheet]:hover {
+  filter: brightness(1.14);
+  transform: translateY(-1px);
+}
+
+/* En pantallas más estrechas el menú de estado sigue cabiendo. */
+@media (max-width: 1050px) {
+  .member-status-control {
+    right: 5px;
+  }
+
+  .member-status-picker {
+    right: 25px;
+    width: 130px;
+  }
+}
+
+/* ==========================================================
+   PLANILLAS - REGISTRAR NUEVAS CUENTAS
+   ========================================================== */
+
+.planillas-account-tools {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.planillas-account-tools .planillas-search {
+  margin-bottom: 0;
+}
+
+.planillas-add-account-btn {
+  min-height: 44px;
+  padding: 9px 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.planillas-add-account-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* El botón adopta el color de la plataforma actual. */
+.planillas-add-account-btn[data-sheet='Netflix Privado'] {
+  background: #7a1118;
+  border-color: #a51d27;
+}
+
+.planillas-add-account-btn[data-sheet='Netflix Compartido'] {
+  background: #c92b37;
+  border-color: #e24a54;
+}
+
+.planillas-add-account-btn[data-sheet='Prime Video'] {
+  background: #0096c7;
+  border-color: #25b9e8;
+}
+
+.planillas-add-account-btn[data-sheet='HBO Max'] {
+  background: #5b2bbf;
+  border-color: #8154e6;
+}
+
+.planillas-add-account-btn[data-sheet='ChatGPT Plus'] {
+  background: #0f8f70;
+  border-color: #28b995;
+}
+
+/* Cada cuenta queda claramente separada de la siguiente. */
+.planillas-content .planilla-account-block + .planilla-account-block {
+  margin-top: 28px;
+}
+
+/* En pantallas angostas, botón y buscador se apilan. */
+@media (max-width: 768px) {
+  .planillas-account-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .planillas-add-account-btn {
+    width: 100%;
+  }
+}
+
+/* ==========================================================
+   PLANILLAS - REGISTRAR / ELIMINAR CUENTAS
+   ========================================================== */
+
+/* Registrar cuenta usa exactamente el mismo estilo base que Agregar cliente. */
+.planillas-add-account-btn {
+  min-height: auto;
+  border: 1px solid rgba(145, 70, 255, 0.5);
+  border-radius: 9px;
+  background: rgba(145, 70, 255, 0.14);
+  color: inherit;
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.planillas-add-account-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(145, 70, 255, 0.24);
+  border-color: #9146ff;
+  filter: none;
+}
+
+/* Anular los colores por plataforma definidos anteriormente. */
+.planillas-add-account-btn[data-sheet='Netflix Privado'],
+.planillas-add-account-btn[data-sheet='Netflix Compartido'],
+.planillas-add-account-btn[data-sheet='Prime Video'],
+.planillas-add-account-btn[data-sheet='HBO Max'],
+.planillas-add-account-btn[data-sheet='ChatGPT Plus'] {
+  background: rgba(145, 70, 255, 0.14);
+  border-color: rgba(145, 70, 255, 0.5);
+}
+
+/* Acciones debajo de cada cuenta:
+   eliminar a la izquierda y agregar cliente a la derecha. */
+.planilla-account-actions--account {
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.planilla-account-delete-area {
+  min-width: 0;
+}
+
+.planilla-delete-account-btn {
+  border: 1px solid rgba(220, 38, 38, 0.42);
+  border-radius: 9px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.planilla-delete-account-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  border-color: var(--danger);
+}
+
+/* Confirmación para evitar borrar una cuenta completa por accidente. */
+.planilla-account-delete-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 9px;
+  background: var(--field);
+}
+
+.planilla-account-delete-confirm span {
+  padding: 0 4px;
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.planilla-account-delete-confirm-btn {
+  width: auto;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--ghost);
+  color: var(--text);
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.planilla-account-delete-confirm-btn--yes {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.planilla-account-delete-confirm-btn:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 768px) {
+  .planilla-account-actions--account {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .planilla-delete-account-btn,
+  .planilla-account-actions--account .planilla-add-member-btn {
+    width: 100%;
+  }
+
+  .planilla-account-delete-confirm {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .planilla-account-delete-confirm-btn {
+    width: 100%;
+  }
+}
+
+/* ==========================================================
+   SIDEBAR - CONTRAER = OCULTAR COMPLETAMENTE
+   ========================================================== */
+
+/* Al contraer ya no queda la barra pequeña D / P / C / L. */
+.app-shell.app-shell--collapsed,
+.app-shell--collapsed:has(.app-content--planillas) {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+/* Ocultar completamente el menú lateral cuando está contraído. */
+.app-shell--collapsed .sidebar,
+.app-shell--collapsed:has(.app-content--planillas) .sidebar {
+  display: none !important;
+}
+
+/* El contenido aprovecha todo el ancho disponible. */
+.app-shell--collapsed .app-content,
+.app-shell--collapsed .app-content--planillas {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+/* Botón para volver a abrir el menú desde Dashboard y las listas. */
+.collapsed-page-menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+/* En móvil ya existe el botón flotante ☰ Menú. */
+@media (max-width: 1080px) {
+  .collapsed-page-menu {
+    display: none;
+  }
+}
+
+/* ==========================================================
+   DASHBOARD - ESTRUCTURA COMPACTA TIPO PANEL ADMINISTRATIVO
+   ========================================================== */
+
+.dashboard-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
+  gap: 18px;
+}
+
+/* Cuentas por plataforma ocupa la zona principal izquierda. */
+.dashboard-platforms-panel {
+  min-width: 0;
+}
+
+.dashboard-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-platform-card {
+  min-width: 0;
+  min-height: 132px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  padding: 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--field);
+  text-align: center;
+}
+
+.dashboard-platform-card__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.dashboard-platform-card strong {
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.dashboard-platform-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.dashboard-platform-card--netflix-private .dashboard-platform-card__icon {
+  background: rgba(122, 17, 24, 0.24);
+}
+
+.dashboard-platform-card--netflix-shared .dashboard-platform-card__icon {
+  background: rgba(201, 43, 55, 0.22);
+}
+
+.dashboard-platform-card--prime .dashboard-platform-card__icon {
+  background: rgba(0, 150, 199, 0.22);
+}
+
+.dashboard-platform-card--hbo .dashboard-platform-card__icon {
+  background: rgba(91, 43, 191, 0.24);
+}
+
+.dashboard-platform-card--chatgpt .dashboard-platform-card__icon {
+  background: rgba(15, 143, 112, 0.22);
+}
+
+/* Actividad reciente a la derecha, similar al panel de referencia. */
+.dashboard-activity-panel {
+  min-width: 0;
+}
+
+.dashboard-activity-list,
+.dashboard-due-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-activity-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--field);
+}
+
+.dashboard-activity-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-soft);
+}
+
+.dashboard-activity-copy {
+  min-width: 0;
+}
+
+.dashboard-activity-copy strong,
+.dashboard-activity-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-activity-copy strong {
+  font-size: 0.88rem;
+}
+
+.dashboard-activity-copy span,
+.dashboard-activity-row time {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+/* Vencimientos ahora son compactos, no ocupan media pantalla vacía. */
+.dashboard-due-panel {
+  min-width: 0;
+}
+
+.dashboard-due-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--field);
+}
+
+.dashboard-due-row > div:first-child {
+  min-width: 0;
+}
+
+.dashboard-due-row strong,
+.dashboard-due-row span {
+  display: block;
+}
+
+.dashboard-due-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.dashboard-due-row > div:first-child > span {
+  margin-top: 3px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.76rem;
+}
+
+.dashboard-due-side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dashboard-days-badge {
+  min-width: 42px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.dashboard-compact-empty {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--field);
+  color: var(--muted);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+/* El hero queda más limpio al no tener texto descriptivo. */
+.dashboard-grid + * {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-platform-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-platform-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-platform-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-platform-card {
+    min-height: 112px;
+  }
+
+  .dashboard-activity-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .dashboard-activity-row time {
+    grid-column: 2;
+  }
+
+  .dashboard-due-row {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 460px) {
+  .dashboard-platform-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-due-row {
+    display: grid;
+  }
+
+  .dashboard-due-side {
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================
+   PLAYZONE | WHATSAPP EN CONTACTO + LOGOS DE PLATAFORMAS
+   No agrega columnas ni modifica los anchos de la cuadrícula.
+   ========================================================== */
+
+.planilla-main-table tbody td.planilla-contact-cell {
+  position: relative;
+  padding: 0 !important;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.planilla-contact-content {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+}
+
+.planilla-contact-editor {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  align-self: stretch;
+}
+
+.planilla-contact-editor .planilla-editable-text {
+  min-height: 38px;
+  width: 100%;
+  padding: 4px 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Cuando se edita, el input azul sigue ocupando la celda entera. */
+.planilla-contact-cell .planilla-cell-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 12;
+}
+
+.planilla-whatsapp-link {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease;
+}
+
+.planilla-whatsapp-link img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.planilla-whatsapp-link:hover {
+  transform: scale(1.12);
+  filter: brightness(1.12);
+}
+
+.planilla-whatsapp-link:focus-visible {
+  outline: 2px solid #25d366;
+  outline-offset: 2px;
+}
+
+/* Se conserva el color por plataforma y su texto identificador. */
+.planillas-tabs button[data-sheet] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.planillas-tab-logo {
+  display: block;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border-radius: 5px;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+@media (max-width: 1050px) {
+  .planilla-contact-content {
+    gap: 3px;
+    padding: 0 3px;
+  }
+  .planilla-whatsapp-link {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+  .planillas-tab-logo {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+}
+
+/* Logos reales en las tarjetas del Dashboard. */
+.dashboard-platform-card__icon {
+  overflow: hidden;
+}
+.dashboard-platform-card__icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+/* =============================================================
+   RECORDATORIOS — compatible con temas claro/oscuro y Planillas.
+   ============================================================= */
+.dashboard-topbar {
+  gap: 12px;
+}
+.reminder-secondary-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.reminder-center {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  z-index: 49;
+}
+.reminder-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 35px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--shell);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: var(--shadow);
+}
+.reminder-trigger:hover {
+  border-color: var(--primary);
+}
+.reminder-count {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px;
+  min-width: 21px;
+  height: 21px;
+  border-radius: 11px;
+  background: #be123c;
+  color: #fff;
+  font-size: 11px;
+}
+.reminder-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+.reminder-popover {
+  position: fixed;
+  z-index: 80;
+  top: 70px;
+  right: clamp(10px, 2vw, 30px);
+  width: min(465px, calc(100vw - 20px));
+  max-height: min(77vh, 760px);
+  display: block;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  box-shadow: 0 15px 48px rgba(0, 0, 0, 0.3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+.reminder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  background: var(--primary-soft);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.reminder-header strong {
+  font-size: 15px;
+}
+.reminder-icon-btn {
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+}
+.reminder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  flex-wrap: wrap;
+}
+.reminder-add-btn,
+.reminder-push-btn {
+  flex: 1 1 auto;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: var(--ghost);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.reminder-add-btn {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.reminder-push-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.reminder-helper,
+.reminder-error {
+  margin: 0 13px 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.reminder-error {
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.reminder-form {
+  display: grid;
+  gap: 9px;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--line);
+}
+.reminder-form label {
+  display: grid;
+  gap: 4px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  min-width: 0;
+}
+.reminder-form input,
+.reminder-form select,
+.reminder-form textarea {
+  width: 100%;
+  padding: 8px 9px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.reminder-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px;
+}
+.reminder-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.reminder-form-actions .btn {
+  width: auto;
+}
+.reminder-scroll-area {
+  overflow: visible;
+  padding: 0 13px 13px;
+  min-height: 0;
+}
+.reminder-scroll-area h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin: 14px 0 8px;
+}
+.reminder-scroll-area h3 span {
+  color: var(--muted);
+}
+.reminder-item {
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 7px;
+  padding: 10px 11px;
+  overflow-wrap: anywhere;
+}
+.reminder-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+.reminder-item p {
+  margin: 6px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.reminder-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+.reminder-due-label {
+  background: var(--warning-soft);
+  color: var(--warning);
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.reminder-due-label--red {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.reminder-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+.reminder-item-actions button,
+.reminder-history-item button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 5px 8px;
+  color: var(--text);
+  background: var(--ghost);
+  font-size: 10px;
+  font-weight: 800;
+}
+.reminder-empty {
+  padding: 6px 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.reminder-history {
+  margin-top: 11px;
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+}
+.reminder-history summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+}
+.reminder-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  border-bottom: 1px solid var(--line);
+  padding: 7px 2px;
+  font-size: 11px;
+}
+.reminder-history-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.reminder-footnote {
+  margin: 0;
+  padding: 9px 13px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+}
+.planilla-note-with-reminder {
+  position: relative !important;
+}
+.planilla-note-with-reminder .planilla-editable-text {
+  padding-right: 30px !important;
+}
+.planilla-note-reminder-btn {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--line);
+  background: var(--primary-soft);
+  color: var(--text);
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+}
+.planilla-note-reminder-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+@media (max-width: 1080px) {
+  .reminder-secondary-topbar {
+    margin: 0 0 14px;
+  }
+}
+@media (max-width: 768px) {
+  .reminder-popover {
+    top: 61px;
+    max-height: 80vh;
+  }
+  .reminder-trigger {
+    font-size: 11px;
+  }
+}
+@media (max-width: 460px) {
+  .reminder-form-row {
+    grid-template-columns: 1fr;
+  }
+  .reminder-trigger {
+    width: auto;
+    padding: 7px 9px;
+  }
+  .reminder-push-btn,
+  .reminder-add-btn {
+    width: auto;
+  }
+  .reminder-secondary-topbar {
+    padding: 0;
+  }
+}
+
+/* Etapa 1: aviso de validación sin alterar dimensiones de las tablas. */
+.planillas-validation-notice {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(240, 146, 36, 0.45);
+  border-radius: 9px;
+  background: rgba(240, 146, 36, 0.1);
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.planillas-validation-notice button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 2px 7px;
+}
+.planilla-cell-input:invalid {
+  outline: 2px solid #ed9037;
+  outline-offset: -2px;
+}
+
+/* Etapa 2: renovación de cuentas, sin alterar columnas ni cuadrículas. */
+.planilla-confirm-payment-btn {
+  border: 1px solid #168046;
+  border-radius: 9px;
+  color: #157347;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 8px 11px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.planilla-confirm-payment-btn:hover {
+  background: rgba(34, 197, 94, 0.18);
+}
+.planilla-due-notice {
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: var(--text);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.planilla-due-notice span {
+  color: var(--muted);
+}
+.planilla-account-actions--account .planilla-confirm-payment-btn {
+  margin-left: auto;
+}
+@media (max-width: 760px) {
+  .planilla-account-actions--account {
+    flex-wrap: wrap;
+  }
+  .planilla-confirm-payment-btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+/* Etapa 2.1: campana de Planillas en la parte superior derecha del panel. */
+.planillas-topbar {
+  align-items: center;
+}
+.planillas-notification-slot {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.planillas-notification-slot .reminder-center {
+  z-index: 49;
+}
+.reminder-due-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 11px 13px 0;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.reminder-due-summary strong {
+  font-weight: 800;
+}
+.reminder-priority-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.reminder-priority-fieldset legend {
+  margin-bottom: 7px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+}
+.reminder-priority-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.reminder-priority-options .reminder-priority-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 4px;
+  cursor: pointer;
+  font-weight: 800;
+  background: var(--field);
+}
+.reminder-priority-choice input {
+  position: absolute;
+  opacity: 0;
+  width: 1px !important;
+  height: 1px;
+}
+.reminder-priority-choice:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.reminder-priority-choice.is-selected {
+  background: var(--primary-soft);
+  border-width: 2px;
+  padding: 8px 3px;
+}
+.reminder-priority-indicator,
+.reminder-priority-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f59e0b;
+}
+.reminder-priority-choice--baja .reminder-priority-indicator,
+.reminder-priority-dot--baja {
+  background: #16a34a;
+}
+.reminder-priority-choice--media .reminder-priority-indicator,
+.reminder-priority-dot--media {
+  background: #f59e0b;
+}
+.reminder-priority-choice--alta .reminder-priority-indicator,
+.reminder-priority-dot--alta {
+  background: #ef4444;
+}
+.reminder-item--priority-baja {
+  border-left: 4px solid #16a34a;
+}
+.reminder-item--priority-media {
+  border-left: 4px solid #f59e0b;
+}
+.reminder-item--priority-alta {
+  border-left: 4px solid #ef4444;
+}
+.reminder-priority-badge {
+  font-size: 10px;
+  font-weight: 900;
+  border-radius: 7px;
+  padding: 3px 7px;
+}
+.reminder-priority-badge--baja {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.12);
+}
+.reminder-priority-badge--media {
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.12);
+}
+.reminder-priority-badge--alta {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+.reminder-history-item .reminder-priority-dot {
+  margin-right: 6px;
+}
+@media (max-width: 620px) {
+  .planillas-topbar {
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .planillas-notification-slot {
+    margin-left: auto;
+  }
+  .reminder-priority-options .reminder-priority-choice {
+    font-size: 11px;
+  }
+}
+
+/* PlayZone: estado del guardado y tareas locales pendientes de migración */
+.reminder-local-warning,
+.reminder-save-feedback {
+  margin: 9px 13px;
+  padding: 9px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  border-radius: 9px;
+  overflow-wrap: anywhere;
+}
+.reminder-local-warning,
+.reminder-save-feedback--warning {
+  color: var(--text);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.reminder-save-feedback--error {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.reminder-save-feedback--success {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+.reminder-form .reminder-save-feedback {
+  margin: 0;
+}
+.reminder-local-tools {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 7px 13px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.reminder-local-tools button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--field);
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px 8px;
+  font-weight: 700;
+}
+.reminder-local-tools button:hover {
+  border-color: var(--primary);
+}
+.reminder-local-label {
+  color: #f59e0b !important;
 }
