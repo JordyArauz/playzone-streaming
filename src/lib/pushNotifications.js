@@ -6,6 +6,10 @@ function decodeVapidKey(key) {
   return Uint8Array.from(raw, (character) => character.charCodeAt(0));
 }
 
+export function isPushConfigured() {
+  return Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim());
+}
+
 export function supportsPushNotifications() {
   return typeof window !== 'undefined' && window.isSecureContext &&
     'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
@@ -22,7 +26,7 @@ export async function enablePlayZonePush(userId) {
     throw new Error('Este navegador necesita HTTPS (o localhost) y soporte para notificaciones push.');
   }
   const key = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-  if (!key) throw new Error('Falta VITE_VAPID_PUBLIC_KEY en la configuración.');
+  if (!key) throw new Error('Push pendiente de configurar. Se requiere la clave pública VAPID y un servicio de envío.');
   if (Notification.permission === 'denied') {
     throw new Error('Las notificaciones están bloqueadas. Habilítalas en los permisos de Chrome.');
   }
@@ -30,7 +34,20 @@ export async function enablePlayZonePush(userId) {
     const granted = await Notification.requestPermission();
     if (granted !== 'granted') throw new Error('No se autorizó enviar notificaciones.');
   }
-  const reg = await navigator.serviceWorker.register('/playzone-sw.js', { scope: '/' });
+  // register() no garantiza que el worker ya se haya activado.
+  // PushManager.subscribe() requiere una registration con Service Worker activo.
+  await navigator.serviceWorker.register('/playzone-sw.js', { scope: '/' });
+  const reg = await Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(
+        'El Service Worker no se activó a tiempo. Recarga localhost y comprueba en Chrome > F12 > Application > Service Workers si /playzone-sw.js tiene errores.',
+      )), 20000),
+    ),
+  ]);
+  if (!reg.active) {
+    throw new Error('El Service Worker todavía no está activo. Recarga PlayZone e inténtalo nuevamente.');
+  }
   const subscription = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: decodeVapidKey(key),
