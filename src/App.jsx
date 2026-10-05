@@ -308,7 +308,8 @@ export default function App() {
       const { data, error } = await supabase
         .from('clients')
         .select(CLIENT_COLUMNS)
-        .order('created_at', { ascending: false })
+        .order('excel_position', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true })
         .order('id', { ascending: true });
 
       setRemoteLoading((state) => ({ ...state, clients: false }));
@@ -348,7 +349,8 @@ export default function App() {
       const { data, error } = await supabase
         .from('accounts')
         .select(ACCOUNT_COLUMNS)
-        .order('created_at', { ascending: false })
+        .order('excel_position', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true })
         .order('id', { ascending: true });
 
       setRemoteLoading((state) => ({ ...state, accounts: false }));
@@ -694,12 +696,14 @@ export default function App() {
       supabase
         .from('accounts')
         .select(ACCOUNT_COLUMNS)
-        .order('created_at', { ascending: false })
+        .order('excel_position', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true })
         .order('id', { ascending: true }),
       supabase
         .from('clients')
         .select(CLIENT_COLUMNS)
-        .order('created_at', { ascending: false })
+        .order('excel_position', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true })
         .order('id', { ascending: true }),
     ]);
     if (accountReply.error || clientReply.error) {
