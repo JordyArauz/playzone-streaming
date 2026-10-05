@@ -5689,3 +5689,250 @@ html[data-theme='light'] .planilla-status-select option {
 .reminder-local-label {
   color: #f59e0b !important;
 }
+
+
+/* ================================================================
+   PLAYZONE 2026 — pestañas Excel y desplazamiento móvil
+   Desktop: conserva todas las dimensiones y los estilos existentes.
+   ================================================================ */
+.planillas-tabs {
+  position: sticky;
+  top: 8px;
+  z-index: 35;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 5px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.planillas-tabs > button[data-sheet] {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.planilla-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.planilla-table-scroll:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  /* Un único botón Menú global; no se tapa el título ni la campana. */
+  .app-shell,
+  .app-shell--collapsed,
+  .app-shell.app-shell--collapsed:has(.app-content--planillas) {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 100%;
+    gap: 0;
+    padding: 66px 8px 20px;
+  }
+  .app-content,
+  .app-content--planillas,
+  .app-shell--collapsed .app-content--planillas,
+  .page-grid,
+  .planillas-page {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .planillas-panel {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 12px 9px;
+    border-radius: 15px;
+  }
+  .planillas-topbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    gap: 7px;
+    margin: 0 0 10px;
+  }
+  .planillas-topbar .planillas-menu-btn { display: none; }
+  .planillas-topbar h2 { font-size: clamp(16px, 5vw, 22px); margin: 0; }
+  .planillas-topbar > div:nth-child(2) { flex: 1 1 auto; min-width: 0; }
+  .planillas-notification-slot {
+    flex: 0 0 auto;
+    margin-left: auto;
+    min-width: 0;
+  }
+  .planillas-notification-slot .reminder-trigger {
+    padding: 7px 8px;
+    min-height: 38px;
+    font-size: 11px;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .planillas-tabs {
+    top: 64px;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 12px;
+    padding: 7px 5px;
+    gap: 7px;
+    border-radius: 12px;
+    scroll-snap-type: x proximity;
+  }
+  .planillas-tabs > button[data-sheet] {
+    scroll-snap-align: start;
+    min-height: 39px;
+    font-size: 12px;
+    padding: 7px 9px;
+    border-radius: 9px;
+  }
+  .planillas-tab-logo { width: 19px; height: 19px; }
+  .planillas-account-tools {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+    min-width: 0;
+    margin: 0 0 13px;
+  }
+  .planillas-account-tools .planillas-search { width: 100%; min-width: 0; }
+  .planillas-account-tools input { width: 100%; min-width: 0; font-size: 16px; }
+  .planillas-add-account-btn { width: 100%; min-width: 0; }
+  .planillas-content { min-width: 0; max-width: 100%; }
+  .planilla-account-block { min-width: 0; max-width: 100%; margin-bottom: 18px; }
+  .planilla-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  /* Las columnas conservan espacio legible; solo se desliza la tabla. */
+  .planilla-table-scroll > .planilla-main-table,
+  .planilla-main-table {
+    width: 1020px;
+    min-width: 1020px;
+    max-width: none;
+    table-layout: fixed;
+    font-size: 12px;
+    margin: 0;
+  }
+  .planilla-table-scroll > .planilla-main-table--chatgpt,
+  .planilla-main-table--chatgpt {
+    width: 1140px;
+    min-width: 1140px;
+  }
+  .planilla-main-table th,
+  .planilla-main-table td,
+  .planilla-main-table .planilla-editable-text,
+  .planilla-main-table .planilla-account-grid-cell,
+  .planilla-main-table .chatgpt-stacked-item {
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+  }
+  .planilla-main-table .planilla-members-header th,
+  .planilla-main-table .planilla-account-grid-cell { padding-left: 6px; padding-right: 6px; }
+  .planilla-main-table .planilla-editable-text { padding-top: 8px; padding-bottom: 8px; }
+  .planilla-main-table .planilla-note-cell .planilla-editable-text,
+  .planilla-main-table .chatgpt-note-cell .planilla-editable-text { text-align: left; padding-right: 35px; }
+  .planilla-main-table .planilla-account-grid {
+    grid-template-columns: minmax(0, .78fr) minmax(0, 1.45fr) minmax(0, .95fr)
+      minmax(0, 1.45fr) minmax(0, 1.08fr) minmax(0, .9fr) minmax(0, 1.3fr);
+  }
+  .planilla-main-table--chatgpt .chatgpt-account-grid {
+    grid-template-columns: minmax(0, .75fr) minmax(0, 1.45fr) minmax(0, .95fr)
+      minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .95fr) minmax(0, 1.1fr);
+  }
+  /* Tabla ancha, acciones ancladas al ancho visible, sin desplazamiento lateral. */
+  .planilla-account-block .planilla-account-actions--account { width: 100%; min-width: 0; }
+  .planilla-account-block .planilla-delete-account-btn,
+  .planilla-account-actions--account .planilla-add-member-btn { width: 100%; }
+
+  /* Ventana modal de Notificaciones sobre toda la página. */
+  .reminder-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 89;
+    background: rgba(0,0,0,.55);
+  }
+  .reminder-popover {
+    position: fixed;
+    z-index: 90;
+    top: max(8px, env(safe-area-inset-top)) !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .reminder-header,
+  .reminder-toolbar { min-width: 0; }
+  .reminder-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 8px;
+  }
+  .reminder-toolbar .reminder-add-btn,
+  .reminder-toolbar .reminder-push-btn { width: 100%; min-width: 0; white-space: normal; }
+  .reminder-item-top { flex-wrap: wrap; gap: 6px; }
+  .reminder-item,
+  .reminder-history-item { overflow-wrap: break-word; word-break: normal; }
+  .reminder-history-item { min-width: 0; }
+  .reminder-footnote { overflow-wrap: break-word; }
+  .reminder-form input,
+  .reminder-form select,
+  .reminder-form textarea { font-size: 16px; }
+}
+
+@media (max-width: 390px) {
+  .planillas-topbar h2 { font-size: 16px; }
+  .planillas-topbar .reminder-trigger { font-size: 10px; padding: 7px; }
+  .reminder-toolbar { grid-template-columns: minmax(0,1fr); }
+}
+
+@media (max-width: 768px) {
+  /* Dashboard: el cierre de sesión ya existe en el menú lateral. */
+  .dashboard-topbar .dashboard-signout { display: none; }
+  .dashboard-topbar { max-width: calc(100vw - 135px); }
+  .dashboard-topbar .reminder-trigger { white-space: nowrap; }
+  /* Listas y detalle: botones y campos no deben salirse de la pantalla. */
+  .list-panel,
+  .record-card,
+  .account-card,
+  .detail-modal { min-width: 0; max-width: 100%; }
+  .filters--clients,
+  .filters--accounts { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .filters--clients > *,
+  .filters--accounts > * { width: 100%; min-width: 0; }
+  .detail-backdrop { padding: 8px; }
+  .detail-modal {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    border-radius: 16px;
+  }
+  .detail-modal__actions { flex-wrap: wrap; }
+  .detail-modal__actions .btn { width: 100%; }
+}

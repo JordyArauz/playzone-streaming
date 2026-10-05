@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabaseClient';
 import {
   disablePlayZonePush,
   enablePlayZonePush,
   getCurrentPushSubscription,
+  isPushConfigured,
   supportsPushNotifications,
 } from '../lib/pushNotifications';
 
@@ -452,7 +454,7 @@ export default function ReminderCenter({
           </strong>
         )}
       </button>
-      {open && (
+      {open && createPortal(
         <>
           <button
             className="reminder-backdrop"
@@ -509,11 +511,19 @@ export default function ReminderCenter({
                 type="button"
                 className="reminder-push-btn"
                 onClick={togglePush}
-                disabled={loading || !supportsPushNotifications()}
+                disabled={loading || (!pushActive && (!supportsPushNotifications() || !isPushConfigured()))}
               >
-                {pushActive ? '🔕 Desactivar push' : '📣 Activar push'}
+                {pushActive
+                  ? '🔕 Desactivar push'
+                  : isPushConfigured() ? '📣 Activar push' : '⚙️ Push sin configurar'}
               </button>
             </div>
+            {!isPushConfigured() && (
+              <p className="reminder-helper" role="status">
+                Push pendiente: configura VITE_VAPID_PUBLIC_KEY y un servicio
+                de envío antes de habilitar los avisos en segundo plano.
+              </p>
+            )}
             {!supportsPushNotifications() && (
               <p className="reminder-helper">
                 Push requiere HTTPS o localhost y un navegador compatible.
@@ -777,12 +787,13 @@ export default function ReminderCenter({
               )}
             </div>
             <p className="reminder-footnote">
-              Vencimientos: Supabase y planillas locales de prueba. Las tareas
-              guardadas solo en este navegador no enviarán push y deberán
-              migrarse a Supabase posteriormente.
+              Los vencimientos corresponden a las cuentas y clientes de Supabase.
+              Las tareas locales, si existen, permanecen solo en este navegador
+              y no reciben notificaciones push.
             </p>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );

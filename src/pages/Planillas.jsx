@@ -718,7 +718,7 @@ export default function Planillas({
         }}
         title="Clic para editar y guardar al salir"
       >
-        {member[field] || '-'}
+        {field === 'note' ? member[field] || '' : member[field] || '-'}
       </span>
     );
   }
@@ -1183,6 +1183,12 @@ export default function Planillas({
 
     return (
       <div className="planilla-account-block" key={account.id}>
+        <div
+          className="planilla-table-scroll"
+          role="region"
+          tabIndex={0}
+          aria-label="Tabla de ChatGPT Plus. Desliza horizontalmente para ver las columnas."
+        >
         <table className="planilla-main-table planilla-main-table--chatgpt">
           <colgroup>
             <col className="chatgpt-col-name" />
@@ -1349,6 +1355,7 @@ export default function Planillas({
             </tr>
           </tfoot>
         </table>
+        </div>
 
         <AccountActions account={account} allowAddMember />
       </div>
@@ -1400,6 +1407,12 @@ export default function Planillas({
 
     return (
       <div className="planilla-account-block" key={account.id}>
+        <div
+          className="planilla-table-scroll"
+          role="region"
+          tabIndex={0}
+          aria-label="Tabla de cuentas y clientes. Desliza horizontalmente para ver las columnas."
+        >
         <table className="planilla-main-table">
           <colgroup>
             <col className="planilla-col-name" />
@@ -1598,6 +1611,7 @@ export default function Planillas({
             ))}
           </tbody>
         </table>
+        </div>
 
         <AccountActions account={account} allowAddMember={isNetflixShared} />
       </div>
@@ -1624,13 +1638,14 @@ export default function Planillas({
           </div>
         </div>
 
-        <div className="planillas-tabs">
+        <nav className="planillas-tabs" aria-label="Hojas de PlayZone">
           {sheets.map((sheet) => (
             <button
               key={sheet}
               type="button"
               data-sheet={sheet}
               className={activeSheet === sheet ? 'active' : ''}
+              aria-current={activeSheet === sheet ? 'page' : undefined}
               onClick={() => {
                 setActiveSheet(sheet);
 
@@ -1655,10 +1670,12 @@ export default function Planillas({
               <span>{sheet}</span>
             </button>
           ))}
-        </div>
+        </nav>
 
-        <div
-          role="status"
+        {(remoteLoading || remoteError ||
+          remoteView.unsupportedAccounts.length > 0 ||
+          remoteView.unlinkedClients.length > 0) && <div
+          role={remoteError ? 'alert' : 'status'}
           style={{
             margin: '10px 0',
             padding: '9px 12px',
@@ -1671,7 +1688,7 @@ export default function Planillas({
             ? '⏳ Leyendo cuentas y clientes desde Supabase…'
             : remoteError
               ? `⚠️ No se pudo consultar Supabase: ${remoteError}`
-              : `✅ Supabase · Edición activa · ${remoteAccounts.length} cuentas, ${remoteClients.length} clientes.${busy ? ' Guardando…' : ''}`}
+              : '⚠️ Hay datos fuera de las cinco planillas.'}
           {!remoteLoading &&
             !remoteError &&
             (remoteView.unsupportedAccounts.length > 0 ||
@@ -1683,7 +1700,7 @@ export default function Planillas({
                 permanecen en Supabase y en las listas originales.
               </span>
             )}
-        </div>
+        </div>}
         <div className="planillas-account-tools">
           <div className="filters planillas-search">
             <input

@@ -3,6 +3,7 @@ import { supabase } from './lib/supabaseClient';
 import Planillas, { getInitialPlanillasDueItems } from './pages/Planillas';
 import ReminderCenter from './components/ReminderCenter';
 import { disablePlayZonePush } from './lib/pushNotifications';
+import { visibleNote } from './lib/visibleNote';
 import netflixLogo from './assets/brands/netflix.jpg';
 import primeVideoLogo from './assets/brands/prime-video.webp';
 import hboMaxLogo from './assets/brands/hbo-max.png';
@@ -171,7 +172,7 @@ function mapAccountFromSupabase(row) {
     subscriptionStart: row.subscription_start || '',
     subscriptionEnd: row.subscription_end || '',
     status: row.status,
-    notes: row.notes || '',
+    notes: visibleNote(row.notes),
     location: row.location || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -195,7 +196,7 @@ function mapClientFromSupabase(row) {
     paymentStatus: row.payment_status || 'Pendiente',
     loginRecord: row.login_record || '',
     status: row.status || 'Habilitado',
-    notes: row.notes || '',
+    notes: visibleNote(row.notes),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -307,7 +308,8 @@ export default function App() {
       const { data, error } = await supabase
         .from('clients')
         .select(CLIENT_COLUMNS)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true });
 
       setRemoteLoading((state) => ({ ...state, clients: false }));
       setRemoteErrors((state) => ({ ...state, clients: error?.message || '' }));
@@ -346,7 +348,8 @@ export default function App() {
       const { data, error } = await supabase
         .from('accounts')
         .select(ACCOUNT_COLUMNS)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true });
 
       setRemoteLoading((state) => ({ ...state, accounts: false }));
       setRemoteErrors((state) => ({
@@ -459,13 +462,6 @@ export default function App() {
         return (
           matchesSearch && matchesPlatform && matchesStatus && matchesAccount
         );
-      })
-      .sort((a, b) => {
-        const dateA =
-          normalizeDate(a.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
-        const dateB =
-          normalizeDate(b.endDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
-        return dateA - dateB;
       });
   }, [
     records,
@@ -503,13 +499,7 @@ export default function App() {
           accountStatusFilter === 'Todos' ||
           account.status === accountStatusFilter;
         return matchesSearch && matchesPlatform && matchesType && matchesStatus;
-      })
-      .sort((a, b) =>
-        normalizePlatformName(a.platform).localeCompare(
-          normalizePlatformName(b.platform),
-          'es',
-        ),
-      );
+      });
   }, [
     accounts,
     search,
@@ -704,11 +694,13 @@ export default function App() {
       supabase
         .from('accounts')
         .select(ACCOUNT_COLUMNS)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true }),
       supabase
         .from('clients')
         .select(CLIENT_COLUMNS)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true }),
     ]);
     if (accountReply.error || clientReply.error) {
       const message = accountReply.error?.message || clientReply.error?.message;
