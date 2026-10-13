@@ -1605,7 +1605,7 @@ export default function App() {
               ) : (
                 <div className="records-table">
                   {filteredRecords.map((record) => (
-                    <article className="record-card" key={record.id}>
+                    <article className={`record-card ${search.trim() ? 'playzone-search-match' : ''}`} key={`${record.id}:${search}`}>
                       <div className="record-card__main">
                         <div>
                           <div className="record-title-row">
@@ -1756,7 +1756,7 @@ export default function App() {
                       (record) => record.accountId === account.id,
                     ).length;
                     return (
-                      <article className="account-card" key={account.id}>
+                      <article className={`account-card ${search.trim() ? 'playzone-search-match' : ''}`} key={`${account.id}:${search}`}>
                         <div className="account-card__header">
                           <div>
                             <h3>

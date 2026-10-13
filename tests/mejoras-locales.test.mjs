@@ -14,9 +14,9 @@ test('observaciones: conserva texto humano sin mostrar metadatos del Excel', () 
   assert.equal(visibleNote(null), '');
 });
 
-test('consultas estables por created_at e id, sin estado como criterio de orden', () => {
+test('consultas por excel_position primero, sin estado como criterio de orden', () => {
   const app = source('src/App.jsx');
-  assert.match(app, /\.order\('created_at', \{ ascending: false \}\)\s*\.order\('id', \{ ascending: true \}\)/);
+  assert.match(app, /\.order\('excel_position', \{ ascending: true, nullsFirst: false \}\)\s*\.order\('created_at', \{ ascending: true \}\)/);
   assert.doesNotMatch(app, /\.sort\(\(a, b\) =>\s*(?:\{|\()\s*(?:normalizeDate\(a\.endDate|normalizePlatformName\(a\.platform)/);
 });
 

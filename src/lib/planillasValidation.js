@@ -31,6 +31,20 @@ export function validateContact(rawValue, { required = false } = {}) {
     return { valid: true, display: `+${digits}`, international: digits, country: 'BO' };
   }
 
+  // Bolivia: teléfonos fijos de ocho dígitos (por ejemplo, 57721230).
+  // No se confunden con los móviles porque empiezan entre 2 y 5.
+  if (/^[2-5]\d{7}$/.test(digits)) {
+    return { valid: true, display: digits, international: `591${digits}`, country: 'BO' };
+  }
+  if (/^591[2-5]\d{7}$/.test(digits)) {
+    return { valid: true, display: `+${digits}`, international: digits, country: 'BO' };
+  }
+
+  // Chile: móvil internacional +56 9 XXXX XXXX.
+  if (/^569\d{8}$/.test(digits)) {
+    return { valid: true, display: `+${digits}`, international: digits, country: 'CL' };
+  }
+
   // Perú: móvil de 9 dígitos que empieza por 9.
   if (/^9\d{8}$/.test(digits)) {
     return { valid: true, display: digits, international: `51${digits}`, country: 'PE' };
@@ -53,7 +67,7 @@ export function validateContact(rawValue, { required = false } = {}) {
 
   return {
     valid: false,
-    message: 'Número inválido. Bolivia: 6/7 + 7 dígitos; Perú: 9 dígitos desde 9; Argentina: +549 y 10 dígitos.',
+    message: 'Número inválido. Bolivia: 8 dígitos (fijo 2-5 o móvil 6-7); Chile: +56 9 y 8 dígitos; Perú: 9 dígitos desde 9; Argentina: +549 y 10 dígitos.',
   };
 }
 
