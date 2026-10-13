@@ -195,13 +195,13 @@ export default function Planillas({
       setValidationError('Primero asigna un nombre a este perfil.');
       return;
     }
-    if (
-      newStatus === 'Habilitado' &&
-      periodOf(entity, member ? 'member' : 'account', todayISO)
-    ) {
-      confirmPaymentAndRenew(account, member);
+    // Cambiar de estado NO es confirmar un pago. Se puede repetir cuando
+    // haga falta, sin sumar meses ni disparar el bloqueo diario de renovación.
+    if (member && !String(member.name || '').trim() && newStatus !== 'Disponible') {
+      setValidationError('Primero escribe un nombre antes de habilitar un perfil disponible.');
       return;
     }
+    if (newStatus === entity.status) return;
     performWrite(() =>
       member
         ? editClient(supabase, userId, member, 'status', newStatus)
@@ -224,6 +224,17 @@ export default function Planillas({
     // Los valores que muestran las fechas no son la fuente de verdad: se valida el período ISO.
     if (String(previous ?? '') === String(raw ?? '')) {
       setEditing(nextCell);
+      return;
+    }
+    if (member && field === 'name' && activeSheet === 'Netflix Privado' &&
+        !String(raw ?? '').trim() && !String(member.id).startsWith('empty-profile:')) {
+      // Un nombre vacío debe liberar una plaza, no reasignar una ficha histórica.
+      // Reutilizamos el diálogo de confirmación ya existente, que usa deleteClient.
+      // Al liberar el cliente real se muestra un hueco virtual Disponible;
+      // un nuevo ocupante obtiene un ID nuevo sin heredar el historial anterior.
+      setEditing(null);
+      setPendingDelete({ accountId: account.id, memberId: member.id });
+      setValidationError('Para liberar este perfil, confirma «Vaciar datos» en la misma fila. Se eliminará la ficha actual de cliente, no sus datos de otras cuentas.');
       return;
     }
     if (member && String(member.id).startsWith('empty-profile:')) {
@@ -367,7 +378,8 @@ export default function Planillas({
           )}
         </div>
 
-        {periodOf(account, 'account', todayISO) &&
+        {activeSheet !== 'ChatGPT Plus' &&
+          periodOf(account, 'account', todayISO) &&
           account.status !== 'Deshabilitado' && (
             <button
               type="button"
@@ -958,10 +970,10 @@ export default function Planillas({
   }
 
   function MemberStatusDot({ account, member }) {
-    const statuses =
-      activeSheet === 'ChatGPT Plus'
-        ? ['Habilitado', 'Pendiente', 'Deshabilitado']
-        : ['Habilitado', 'Pendiente', 'Deshabilitado', 'Disponible'];
+    const statuses = !String(member.name || '').trim() &&
+      activeSheet !== 'ChatGPT Plus'
+      ? ['Disponible']
+      : ['Habilitado', 'Pendiente', 'Deshabilitado'];
 
     const calculatedStatus = effectiveStatus(member, 'member', todayISO);
     const currentStatus = statuses.includes(calculatedStatus)
@@ -1066,7 +1078,7 @@ export default function Planillas({
           onCreateReminder({
             kind,
             title: raw.slice(0, 180) || `Revisar ${member.name || 'cliente'}`,
-            details: `${activeSheet} · ${member.name || 'Cliente'} · ${account.email || 'Cuenta sin email'}`,
+            details: '', // Observaciones se redactan manualmente, sin texto prefijado.
             sourceRef: `${activeSheet}:${account.id}:${member.id}`,
           });
         }}
@@ -1182,7 +1194,7 @@ export default function Planillas({
     const totalPayments = sumChatGPTPayments(account);
 
     return (
-      <div className="planilla-account-block" key={account.id}>
+      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={`${account.id}:${search}`}>
         <div
           className="planilla-table-scroll"
           role="region"
@@ -1276,7 +1288,7 @@ export default function Planillas({
 
               return (
                 <tr
-                  key={member.id}
+                  key={`${member.id}:${search}`}
                   className={isSearchMatch ? 'planilla-row-match' : ''}
                 >
                   <td className="chatgpt-name-cell planilla-name-cell">
@@ -1362,6 +1374,14 @@ export default function Planillas({
     );
   }
 
+  function accountMatchesSearch(account) {
+    const query = search.trim().toLowerCase();
+    if (!query) return false;
+    return [account.email, account.password, account.subscription,
+      account.status, account.cardName, account.location]
+      .filter(Boolean).join(' ').toLowerCase().includes(query);
+  }
+
   function memberMatchesSearch(member) {
     const query = search.trim().toLowerCase();
 
@@ -1406,7 +1426,7 @@ export default function Planillas({
     const membersForRender = getMembersForRender(account);
 
     return (
-      <div className="planilla-account-block" key={account.id}>
+      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={`${account.id}:${search}`}>
         <div
           className="planilla-table-scroll"
           role="region"
@@ -1496,7 +1516,7 @@ export default function Planillas({
 
                 return (
                   <tr
-                    key={member.id}
+                    key={`${member.id}:${search}`}
                     className={isSearchMatch ? 'planilla-row-match' : ''}
                   >
                     <td className="planilla-name-cell">

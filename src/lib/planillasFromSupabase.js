@@ -96,19 +96,36 @@ function blankProfile(accountId, slot) {
   };
 }
 
+export function profileNumber(value) {
+  // Soporta "Perfil 1", "1" o "Perfil 1 - titular"; otros títulos quedan estables.
+  const match = /^(?:perfil\s*[#:.-]?\s*)?([1-9]\d*)(?=\D|$)/i.exec(clean(value));
+  return match ? Number(match[1]) : null;
+}
+
+export function orderMembersByProfile(members) {
+  return [...members].sort((first, second) => {
+    const a = profileNumber(first.profile);
+    const b = profileNumber(second.profile);
+    if (a === null && b === null) return 0;
+    if (a === null) return 1;
+    if (b === null) return -1;
+    return a - b; // JS sort es estable: conserva clientes dentro de un perfil.
+  });
+}
+
 function membersWithFixedSlots(members, accountId, count) {
   const used = new Set();
   const result = [...members];
   for (const member of members) {
-    const match = /^Perfil\s+(\d+)$/i.exec(clean(member.profile));
-    if (match) used.add(Number(match[1]));
+    const slot = profileNumber(member.profile);
+    if (slot !== null && slot >= 1 && slot <= count) used.add(slot);
   }
   // Si un cliente real no tiene profile_name, ocupa una plaza sin que
   // adivinemos su perfil. Nunca superamos el cupo solo por rellenar huecos.
   for (let slot = 1; slot <= count && result.length < count; slot += 1) {
     if (!used.has(slot)) result.push(blankProfile(accountId, slot));
   }
-  return result;
+  return orderMembersByProfile(result);
 }
 
 /** Recibe el formato normalizado que ya utiliza App.jsx, sin mutarlo. */
@@ -142,6 +159,7 @@ export function mapSupabaseToPlanillas(accounts = [], clients = []) {
       sheet
     ];
     if (fixedSlots) members = membersWithFixedSlots(members, a.id, fixedSlots);
+    else if (sheet === 'Netflix Compartido') members = orderMembersByProfile(members);
     groupedData[sheet].push({
       id: a.id,
       email: a.email || '',

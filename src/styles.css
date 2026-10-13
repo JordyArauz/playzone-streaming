@@ -5936,3 +5936,52 @@ html[data-theme='light'] .planilla-status-select option {
   .detail-modal__actions { flex-wrap: wrap; }
   .detail-modal__actions .btn { width: 100%; }
 }
+
+/* PLAYZONE - mejoras locales 2026-10: planillas y recordatorios */
+/* clip evita que html/body/#root creen un contenedor de scroll que bloquee
+   el sticky de las pestañas; cada tabla conserva su scroll horizontal. */
+html:has(.planillas-page), body:has(.planillas-page), #root:has(.planillas-page) { overflow-x: clip; }
+.planillas-tabs { isolation: isolate; }
+
+/* La tabla actual usa .planilla-main-table, no .planilla-members-table.
+   Brillo temporal (sin animación infinita) al introducir una búsqueda. */
+@keyframes playzoneSearchPulse {
+  0%, 15% { background-color: rgba(178, 118, 255, .4); box-shadow: inset 0 0 0 2px rgba(178, 118, 255, .7); }
+  50% { background-color: rgba(178, 118, 255, .22); box-shadow: inset 0 0 0 1px rgba(178, 118, 255, .4); }
+  100% { background-color: transparent; box-shadow: none; }
+}
+.planilla-main-table .planilla-row-match > td,
+.planilla-main-table .planilla-row-match > th {
+  animation: playzoneSearchPulse 2.5s ease-out 1;
+}
+@keyframes playzoneBlockPulse {
+  0%, 15% { outline: 3px solid rgba(178, 118, 255, .85); outline-offset: 2px; }
+  100% { outline: 3px solid transparent; outline-offset: 2px; }
+}
+.planilla-account-block.planilla-account-match,
+.record-card.playzone-search-match,
+.account-card.playzone-search-match {
+  animation: playzoneBlockPulse 2.5s ease-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .planilla-main-table .planilla-row-match > td,
+  .planilla-main-table .planilla-row-match > th,
+  .planilla-account-block.planilla-account-match,
+  .record-card.playzone-search-match,
+  .account-card.playzone-search-match { animation: none; outline: 2px solid var(--primary); }
+}
+/* Las tres categorías del panel pueden contraerse independientemente. */
+.reminder-section { margin: 10px 0; min-width: 0; }
+.reminder-section > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; cursor: pointer; list-style: none;
+  font-size: 12px; font-weight: 800;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--field); color: var(--text);
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.reminder-section > summary::-webkit-details-marker { display: none; }
+.reminder-section > summary::before { content: '▾'; color: var(--primary); font-size: 14px; }
+.reminder-section:not([open]) > summary::before { content: '▸'; }
+.reminder-section > summary span { margin-left: auto; color: var(--muted); }
+.reminder-section > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

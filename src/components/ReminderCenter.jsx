@@ -243,7 +243,7 @@ export default function ReminderCenter({
       kind: quickDraft.kind || 'tarea',
       priority: PRIORITIES[quickDraft.priority] ? quickDraft.priority : 'media',
       title: quickDraft.title || '',
-      details: quickDraft.details || '',
+      details: '', // Siempre vacío al crear, incluso desde la campana de una planilla.
       dueAt: '',
       sourceRef: quickDraft.sourceRef || '',
     });
@@ -661,9 +661,8 @@ export default function ReminderCenter({
               </form>
             )}
             <div className="reminder-scroll-area">
-              <h3>
-                Vencimientos <span>{dueItems.length}</span>
-              </h3>
+              <details className="reminder-section" open>
+                <summary>Vencimientos <span>{dueItems.length}</span></summary>
               {dueItems.length ? (
                 dueItems.map((item) => (
                   <div className="reminder-item" key={item.id}>
@@ -688,9 +687,9 @@ export default function ReminderCenter({
                   No hay vencimientos para hoy ni mañana.
                 </p>
               )}
-              <h3>
-                Pendientes <span>{pending.length}</span>
-              </h3>
+              </details>
+              <details className="reminder-section" open>
+                <summary>Pendientes <span>{pending.length}</span></summary>
               {pending.length ? (
                 pending.map((item) => {
                   const when = item.due_at ? new Date(item.due_at) : null;
@@ -762,10 +761,11 @@ export default function ReminderCenter({
                   No hay tareas, pagos ni cobros pendientes.
                 </p>
               )}
-              {finished.length > 0 && (
-                <details className="reminder-history">
-                  <summary>Historial ({finished.length})</summary>
-                  {finished.map((item) => (
+              </details>
+              <details className="reminder-history reminder-section">
+                  <summary>Historial <span>{finished.length}</span></summary>
+                  {finished.length ? (
+                  finished.map((item) => (
                     <div className="reminder-history-item" key={item.id}>
                       <span>
                         <span
@@ -782,9 +782,8 @@ export default function ReminderCenter({
                         Reabrir
                       </button>
                     </div>
-                  ))}
-                </details>
-              )}
+                  ))) : <p className="reminder-empty">Todavía no hay tareas finalizadas.</p>}
+              </details>
             </div>
             <p className="reminder-footnote">
               Los vencimientos corresponden a las cuentas y clientes de Supabase.
