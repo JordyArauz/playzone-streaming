@@ -33,9 +33,17 @@ export function periodOf(entity, kind, todayISO = businessDateISO()) {
   return checked.valid && checked.startISO && checked.endISO ? checked : null;
 }
 export function effectiveStatus(entity, kind, todayISO = businessDateISO()) {
-  // El botón refleja la decisión manual. El vencimiento sigue calculándose
-  // por fechas en ReminderCenter y no debe impedir habilitar varias veces.
-  return entity.status || 'Pendiente';
+  // Sólo cambia la visualización: nunca se modifica la fecha ni se registra un pago.
+  // Disponible y Deshabilitado conservan el estado escogido por el administrador.
+  const savedStatus = entity.status || 'Pendiente';
+  if (savedStatus === 'Disponible' || savedStatus === 'Deshabilitado') {
+    return savedStatus;
+  }
+  const period = periodOf(entity, kind, todayISO);
+  if (period && daysUntil(period.endISO, todayISO) <= 0) {
+    return 'Pendiente';
+  }
+  return savedStatus;
 }
 function addUtcDays(date, days) {
   const next = new Date(date.getTime());

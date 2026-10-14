@@ -49,7 +49,7 @@ test('el cambio de Habilitado es independiente de una confirmación de pago', ()
   assert.doesNotMatch(statusFunction[0],/confirmPaymentAndRenew/);
   assert.match(statusFunction[0],/editClient/);
   assert.match(statusFunction[0],/editAccount/);
-  assert.match(page,/activeSheet !== 'ChatGPT Plus' &&\s*periodOf\(account/);
+  assert.doesNotMatch(page,/Pago recibido · Renovar cuenta/);
 });
 
 test('creación rápida de recordatorios deja vacías las observaciones', () => {

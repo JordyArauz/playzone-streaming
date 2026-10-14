@@ -27,11 +27,14 @@ const member = { id:'np-1-m1', name:'Cliente prueba', status:'Habilitado', dateR
 check('cálculo de cuenta con año explícito',()=> assert.equal(periodOf(account,'account','2026-10-01').endISO,'2026-10-24'));
 check('cálculo de cliente con año oculto',()=> assert.equal(periodOf(member,'member','2026-10-01').endISO,'2026-10-24'));
 check('verde activo antes del vencimiento',()=> assert.equal(effectiveStatus(member,'member','2026-10-23'),'Habilitado'));
-check('el estado manual sigue habilitado en el día de vencimiento',()=> assert.equal(effectiveStatus(member,'member','2026-10-24'),'Habilitado'));
-check('el estado manual puede habilitarse incluso tras el vencimiento',()=> assert.equal(effectiveStatus(member,'member','2026-11-01'),'Habilitado'));
+check('cliente pendiente desde el mismo día de vencimiento',()=> assert.equal(effectiveStatus(member,'member','2026-10-24'),'Pendiente'));
+check('cliente permanece pendiente después de vencer sin renovar fecha',()=> assert.equal(effectiveStatus(member,'member','2026-11-01'),'Pendiente'));
 check('deshabilitado no cambia de color',()=> assert.equal(effectiveStatus({...member,status:'Deshabilitado'},'member','2026-11-01'),'Deshabilitado'));
 check('disponible no cambia de color',()=> assert.equal(effectiveStatus({...member,status:'Disponible'},'member','2026-11-01'),'Disponible'));
 check('un año sin fecha permanece editable',()=> assert.equal(effectiveStatus({status:'Habilitado'},'account','2026-11-01'),'Habilitado'));
+check('cuenta pendiente el día exacto de vencimiento',()=> assert.equal(effectiveStatus(account,'account','2026-10-24'),'Pendiente'));
+check('cuenta verde un día antes',()=> assert.equal(effectiveStatus(account,'account','2026-10-23'),'Habilitado'));
+check('estado pendiente manual se respeta antes de fecha',()=> assert.equal(effectiveStatus({...member,status:'Pendiente'},'member','2026-10-22'),'Pendiente'));
 check('renovación anticipada conserva el vencimiento original',()=> {
   const result = confirmPaidRenewal(member,'member','2026-10-10');
   assert.equal(result.ok,true);
@@ -65,7 +68,7 @@ check('cuenta: renovación conserva años visibles',()=> {
 check('cuenta: deuda antigua avanza solo un mes',()=> {
   const result=confirmPaidRenewal(account,'account','2027-01-01');
   assert.equal(result.fields.subscriptionEndISO,'2026-11-24');
-  assert.equal(effectiveStatus({...account,...result.fields},'account','2027-01-01'),'Habilitado');
+  assert.equal(effectiveStatus({...account,...result.fields},'account','2027-01-01'),'Pendiente');
 });
 check('a un día del vencimiento se avisa',()=> {
   const due = localPlanillasDueItems({'Netflix Privado':[{...account,members:[member]}]},'2026-10-23');

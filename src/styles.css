@@ -5456,21 +5456,6 @@ html[data-theme='light'] .planilla-status-select option {
   outline-offset: -2px;
 }
 
-/* Etapa 2: renovación de cuentas, sin alterar columnas ni cuadrículas. */
-.planilla-confirm-payment-btn {
-  border: 1px solid #168046;
-  border-radius: 9px;
-  color: #157347;
-  background: rgba(34, 197, 94, 0.1);
-  padding: 8px 11px;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.planilla-confirm-payment-btn:hover {
-  background: rgba(34, 197, 94, 0.18);
-}
 .planilla-due-notice {
   border: 1px solid rgba(245, 158, 11, 0.45);
   color: var(--text);
@@ -5484,16 +5469,9 @@ html[data-theme='light'] .planilla-status-select option {
 .planilla-due-notice span {
   color: var(--muted);
 }
-.planilla-account-actions--account .planilla-confirm-payment-btn {
-  margin-left: auto;
-}
 @media (max-width: 760px) {
   .planilla-account-actions--account {
     flex-wrap: wrap;
-  }
-  .planilla-confirm-payment-btn {
-    max-width: 100%;
-    white-space: normal;
   }
 }
 
@@ -5985,3 +5963,37 @@ html:has(.planillas-page), body:has(.planillas-page), #root:has(.planillas-page)
 .reminder-section:not([open]) > summary::before { content: '▸'; }
 .reminder-section > summary span { margin-left: auto; color: var(--muted); }
 .reminder-section > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Acciones seguras para las tareas finalizadas (no renovaciones ni pagos). */
+.reminder-history-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 7px 2px;
+}
+.reminder-history-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.reminder-history-toolbar .reminder-history-clear,
+.reminder-history-item .reminder-history-delete {
+  border: 1px solid var(--line);
+  background: var(--ghost);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 7px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.reminder-history-toolbar button:disabled,
+.reminder-history-actions button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+@media (max-width: 620px) {
+  .reminder-history-item { flex-wrap: wrap; }
+  .reminder-history-actions { margin-left: auto; }
+}

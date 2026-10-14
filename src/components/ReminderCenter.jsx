@@ -400,6 +400,70 @@ export default function ReminderCenter({
     }
   }
 
+  function backupHistory(items) {
+    const snapshot = items.map(({ id, kind, title, details, due_at, status, priority, created_at, isLocal }) => ({
+      id, kind, title, details, due_at, status, priority, created_at, isLocal: Boolean(isLocal),
+    }));
+    const file = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `playzone-historial-tareas-${localDateKey()}.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function deleteHistory(items) {
+    if (loading || !userId) return;
+    // El historial de Notificaciones contiene tareas finalizadas/archivadas,
+    // NO el historial de renovación de cuentas o clientes.
+    const targets = items.filter((item) => item.status !== 'pendiente');
+    if (!targets.length) return;
+    const message = targets.length === 1
+      ? '¿Eliminar esta tarea del historial? No se podrá recuperar.'
+      : `¿Eliminar ${targets.length} tareas finalizadas del historial? Se descargará una copia JSON antes de borrar las tareas mostradas.`;
+    if (!window.confirm(message)) return;
+    if (targets.length > 1) {
+      try {
+        backupHistory(targets);
+      } catch (error) {
+        setNotice(`No se pudo preparar el respaldo. No se borró nada: ${error.message}`);
+        return;
+      }
+    }
+
+    setLoading(true);
+    setNotice('');
+    try {
+      const remoteIds = targets.filter((item) => !item.isLocal).map((item) => item.id);
+      const localIds = new Set(targets.filter((item) => item.isLocal).map((item) => item.id));
+      if (remoteIds.length) {
+        // Condiciones explícitas: usuario, IDs visibles y nunca tareas pendientes.
+        const { data, error } = await supabase
+          .from('reminders')
+          .delete()
+          .eq('user_id', userId)
+          .in('id', remoteIds)
+          .neq('status', 'pendiente')
+          .select('id');
+        if (error) throw error;
+        if ((data || []).length !== remoteIds.length) {
+          throw new Error('Supabase no confirmó todas las eliminaciones. Revisa la política RLS de DELETE para reminders.');
+        }
+      }
+      if (localIds.size) {
+        changeLocalReminders((current) => current.filter((item) => !localIds.has(item.id)));
+      }
+      await refresh();
+      setNotice(targets.length === 1 ? 'Tarea eliminada del historial.' : 'Historial de tareas seleccionadas eliminado.');
+    } catch (error) {
+      await refresh();
+      setNotice(`No se pudo completar la eliminación: ${error?.message || 'Error desconocido'}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function togglePush() {
     setLoading(true);
     setNotice('');
@@ -763,32 +827,59 @@ export default function ReminderCenter({
               )}
               </details>
               <details className="reminder-history reminder-section">
-                  <summary>Historial <span>{finished.length}</span></summary>
-                  {finished.length ? (
-                  finished.map((item) => (
-                    <div className="reminder-history-item" key={item.id}>
-                      <span>
-                        <span
-                          className={`reminder-priority-dot reminder-priority-dot--${priorityFor(item.priority).className}`}
-                          aria-hidden="true"
-                        />
-                        {item.title} · {item.status}
-                        {item.isLocal ? ' · local' : ''}
-                      </span>
+                <summary>Historial <span>{finished.length}</span></summary>
+                {finished.length ? (
+                  <>
+                    <div className="reminder-history-toolbar">
                       <button
                         type="button"
-                        onClick={() => setReminderStatus(item.id, 'pendiente')}
+                        className="reminder-history-clear"
+                        disabled={loading}
+                        onClick={() => deleteHistory(finished)}
                       >
-                        Reabrir
+                        🗑 Borrar tareas finalizadas mostradas
                       </button>
                     </div>
-                  ))) : <p className="reminder-empty">Todavía no hay tareas finalizadas.</p>}
+                    {finished.map((item) => (
+                      <div className="reminder-history-item" key={item.id}>
+                        <span>
+                          <span
+                            className={`reminder-priority-dot reminder-priority-dot--${priorityFor(item.priority).className}`}
+                            aria-hidden="true"
+                          />
+                          {item.title} · {item.status}
+                          {item.isLocal ? ' · local' : ''}
+                        </span>
+                        <div className="reminder-history-actions">
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => setReminderStatus(item.id, 'pendiente')}
+                          >
+                            Reabrir
+                          </button>
+                          <button
+                            type="button"
+                            className="reminder-history-delete"
+                            disabled={loading}
+                            onClick={() => deleteHistory([item])}
+                            aria-label={`Eliminar del historial: ${item.title}`}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <p className="reminder-empty">Todavía no hay tareas finalizadas.</p>
+                )}
               </details>
             </div>
             <p className="reminder-footnote">
-              Los vencimientos corresponden a las cuentas y clientes de Supabase.
-              Las tareas locales, si existen, permanecen solo en este navegador
-              y no reciben notificaciones push.
+              Los vencimientos provienen de Supabase. Activar push registra este
+              dispositivo, pero los envíos dependen del servicio automático de
+              notificaciones. Las tareas guardadas solo en este navegador no reciben push.
             </p>
           </div>
         </>,

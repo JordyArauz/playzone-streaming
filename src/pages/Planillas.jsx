@@ -11,9 +11,7 @@ import {
 } from '../lib/planillasValidation';
 import {
   businessDateISO,
-  confirmPaidRenewal,
   effectiveStatus,
-  periodOf,
 } from '../lib/planillasRenewal';
 import { mapSupabaseToPlanillas } from '../lib/planillasFromSupabase';
 import { supabase } from '../lib/supabaseClient';
@@ -25,7 +23,6 @@ import {
   editProfileGroup,
   deleteClient,
   deleteAccount,
-  renewPaid,
 } from '../lib/planillasWrite';
 
 const sheets = [
@@ -154,38 +151,6 @@ export default function Planillas({
       busyRef.current = false;
       setBusy(false);
     }
-  }
-
-  async function confirmPaymentAndRenew(account, member = null) {
-    if (readOnly) return;
-    if (member && String(member.id).startsWith('empty-profile:')) {
-      setValidationError(
-        'Primero registra el nombre del cliente en ese perfil.',
-      );
-      return;
-    }
-    const entity = member || account;
-    const kind = member ? 'member' : 'account';
-    const result = confirmPaidRenewal(entity, kind, todayISO);
-    if (!result.ok) {
-      setValidationError(result.message);
-      return;
-    }
-    const title = member ? member.name || 'cliente' : account.email || 'cuenta';
-    if (
-      !window.confirm(
-        `¿Confirmas el pago de ${title}?\nSe renovará un mes desde ${result.previousEndISO}. No se puede repetir el mismo día.`,
-      )
-    )
-      return;
-    await performWrite(() =>
-      renewPaid(
-        supabase,
-        member ? 'client' : 'account',
-        entity.id,
-        result.previousEndISO,
-      ),
-    );
   }
 
   function changePaidStatus(account, member, newStatus) {
@@ -377,19 +342,6 @@ export default function Planillas({
             </button>
           )}
         </div>
-
-        {activeSheet !== 'ChatGPT Plus' &&
-          periodOf(account, 'account', todayISO) &&
-          account.status !== 'Deshabilitado' && (
-            <button
-              type="button"
-              className="planilla-confirm-payment-btn"
-              onClick={() => confirmPaymentAndRenew(account)}
-              title="Confirma el pago y renueva un mes desde el vencimiento anterior"
-            >
-              ✓ Pago recibido · Renovar cuenta
-            </button>
-          )}
 
         {allowAddMember && (
           <button
