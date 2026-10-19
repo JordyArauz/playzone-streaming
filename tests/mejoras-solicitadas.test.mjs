@@ -57,7 +57,7 @@ test('creación rápida de recordatorios deja vacías las observaciones', () => 
   const reminders = read('src/components/ReminderCenter.jsx');
   assert.match(page,/details: '', \/\/ Observaciones/);
   assert.match(reminders,/details: '', \/\/ Siempre vacío/);
-  assert.match(reminders,/<details className="reminder-section" open>/);
+  assert.match(reminders,/<details className="reminder-section">/);
   assert.match(reminders,/<details className="reminder-history reminder-section">/);
 });
 

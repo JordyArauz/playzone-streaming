@@ -8,6 +8,7 @@ import {
   isPushConfigured,
   supportsPushNotifications,
 } from '../lib/pushNotifications';
+import { clientDueLabel } from '../lib/noticeLabels';
 
 const blankForm = {
   kind: 'tarea',
@@ -278,7 +279,7 @@ export default function ReminderCenter({
         days,
         date,
         category: 'Cliente',
-        title: `${client.clientName || 'Cliente'} · ${client.platform || ''}`,
+        title: clientDueLabel(client, accounts),
       });
     });
     // Mientras Planillas trabaja en local se muestran avisos identificados como
@@ -356,7 +357,7 @@ export default function ReminderCenter({
       } else {
         await refresh();
         setSaveFeedbackType('success');
-        setSaveFeedback('Tarea guardada en Supabase.');
+        setSaveFeedback('Tarea guardada en Supabase. Para recibir un aviso a la hora indicada, activa push en este dispositivo; el servicio de tareas debe estar programado.');
       }
       setForm(blankForm);
       setShowForm(false);
@@ -725,7 +726,7 @@ export default function ReminderCenter({
               </form>
             )}
             <div className="reminder-scroll-area">
-              <details className="reminder-section" open>
+              <details className="reminder-section">
                 <summary>Vencimientos <span>{dueItems.length}</span></summary>
               {dueItems.length ? (
                 dueItems.map((item) => (
@@ -752,7 +753,7 @@ export default function ReminderCenter({
                 </p>
               )}
               </details>
-              <details className="reminder-section" open>
+              <details className="reminder-section">
                 <summary>Pendientes <span>{pending.length}</span></summary>
               {pending.length ? (
                 pending.map((item) => {
