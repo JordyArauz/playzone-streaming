@@ -1674,13 +1674,31 @@ export default function Planillas({
             )}
         </div>}
         <div className="planillas-account-tools">
-          <div className="filters planillas-search">
+          <form
+            className="filters planillas-search"
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              // Android/iOS: oculta el teclado y conserva los resultados filtrados.
+              event.currentTarget.querySelector('input')?.blur();
+            }}
+          >
             <input
+              type="search"
+              inputMode="search"
+              enterKeyHint="search"
+              aria-label="Buscar cuenta o cliente en la planilla"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                }
+              }}
               placeholder="🔍 Buscar cuenta, cliente, perfil o contacto..."
             />
-          </div>
+          </form>
 
           <button
             type="button"

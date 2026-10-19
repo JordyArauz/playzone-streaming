@@ -6,8 +6,8 @@ self.addEventListener('push', (event) => {
   const body = String(payload.body || 'Tienes un recordatorio pendiente.');
   event.waitUntil(self.registration.showNotification(title, {
     body,
-    icon: '/playzone-icon.svg',
-    badge: '/playzone-icon.svg',
+    icon: '/playzone-icon-192.png',
+    badge: '/playzone-icon-192.png',
     tag: String(payload.tag || 'playzone-recordatorio'),
     renotify: false,
     data: { url: '/' },
