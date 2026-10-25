@@ -8,7 +8,7 @@ import {
   isPushConfigured,
   supportsPushNotifications,
 } from '../lib/pushNotifications';
-import { clientDueLabel } from '../lib/noticeLabels';
+import { clientDueLabel, isChatGPTPlatform, netflixDueClass } from '../lib/noticeLabels';
 
 const blankForm = {
   kind: 'tarea',
@@ -267,6 +267,8 @@ export default function ReminderCenter({
         days,
         date,
         category: 'Cuenta',
+        platform,
+        type: account.type || '',
         title: `${platform}${type} · ${account.email || account.cardName || 'sin identificación'}`,
       });
     });
@@ -274,11 +276,14 @@ export default function ReminderCenter({
       const date = client.endDate;
       const days = deltaCalendarDays(date, today);
       if (days === null || days > 1 || days < -7) return;
+      const linkedAccount = accounts.find((account) => account.id === client.accountId);
       results.push({
         id: `client-${client.id}`,
         days,
         date,
         category: 'Cliente',
+        platform: linkedAccount?.platform || client.platform || '',
+        type: linkedAccount?.type || '',
         title: clientDueLabel(client, accounts),
       });
     });
@@ -356,8 +361,9 @@ export default function ReminderCenter({
         );
       } else {
         await refresh();
-        setSaveFeedbackType('success');
-        setSaveFeedback('Tarea guardada en Supabase. Para recibir un aviso a la hora indicada, activa push en este dispositivo; el servicio de tareas debe estar programado.');
+        // Guardado correcto: cerrar el formulario sin ocupar espacio con un aviso.
+        // Conservamos los mensajes de error y las advertencias del modo local.
+        setSaveFeedback('');
       }
       setForm(blankForm);
       setShowForm(false);
@@ -730,7 +736,10 @@ export default function ReminderCenter({
                 <summary>Vencimientos <span>{dueItems.length}</span></summary>
               {dueItems.length ? (
                 dueItems.map((item) => (
-                  <div className="reminder-item" key={item.id}>
+                  <div
+                    className={`reminder-item${isChatGPTPlatform(item.platform) ? ' reminder-item--chatgpt' : netflixDueClass(item.platform, item.type)}`}
+                    key={item.id}
+                  >
                     <div className="reminder-item-top">
                       <strong>{item.category}</strong>
                       <span
@@ -877,11 +886,6 @@ export default function ReminderCenter({
                 )}
               </details>
             </div>
-            <p className="reminder-footnote">
-              Los vencimientos provienen de Supabase. Activar push registra este
-              dispositivo, pero los envíos dependen del servicio automático de
-              notificaciones. Las tareas guardadas solo en este navegador no reciben push.
-            </p>
           </div>
         </>,
         document.body,

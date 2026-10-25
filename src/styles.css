@@ -5289,6 +5289,17 @@ html[data-theme='light'] .planilla-status-select option {
   padding: 10px 11px;
   overflow-wrap: anywhere;
 }
+/* Bordes discretos de plataforma: no alteran el color de urgencia de vencimiento. */
+.reminder-item--chatgpt {
+  border-left: 3px solid #22c55e;
+}
+.reminder-item--netflix-privado,
+.reminder-item--netflix {
+  border-left: 3px solid #e50914;
+}
+.reminder-item--netflix-compartido {
+  border-left: 3px solid #f59e0b;
+}
 .reminder-item-top {
   display: flex;
   align-items: center;
