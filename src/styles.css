@@ -6008,3 +6008,13 @@ html:has(.planillas-page), body:has(.planillas-page), #root:has(.planillas-page)
   .reminder-history-item { flex-wrap: wrap; }
   .reminder-history-actions { margin-left: auto; }
 }
+
+/* Menú de estado en portal: fuera del overflow de la ultima fila y de la tabla. */
+.member-status-picker {
+  position: fixed !important;
+  transform: none !important;
+  right: auto !important;
+  z-index: 10000 !important;
+  max-height: min(60vh, 190px);
+  overflow-y: auto;
+}

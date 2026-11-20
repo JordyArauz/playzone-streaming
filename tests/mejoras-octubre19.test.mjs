@@ -51,7 +51,7 @@ test('envío de tareas independiente de resumen y sin duplicar eventos', () => {
   const sql = source('supabase/cron/20261019_programar_tareas_push.sql');
   assert.match(edge, /mode !== 'dispatch' && mode !== 'tasks'/);
   assert.match(edge, /mode === 'dispatch' && hour >= 9/);
-  assert.match(edge, /mode === 'tasks' \? tenMinutes : oneDay/);
+  assert.match(edge, /if \(mode === 'tasks'\)/);
   assert.match(edge, /notification_deliveries/);
   assert.match(edge, /onConflict: 'subscription_id,event_key'/);
   assert.match(sql, /\* \* \* \* \*/);

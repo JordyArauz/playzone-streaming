@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 import Planillas, { getInitialPlanillasDueItems } from './pages/Planillas';
 import ReminderCenter from './components/ReminderCenter';
@@ -202,6 +202,16 @@ function mapClientFromSupabase(row) {
   };
 }
 
+function unchangedData(previous, incoming) {
+  return previous.length === incoming.length && previous.every((item, index) => {
+    const next = incoming[index];
+    if (!next) return false;
+    const keys = Object.keys(item);
+    return keys.length === Object.keys(next).length &&
+      keys.every((key) => item[key] === next[key]);
+  });
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [records, setRecords] = useState([]);
@@ -245,6 +255,10 @@ export default function App() {
   const [detailView, setDetailView] = useState(null);
   const [reminderDraft, setReminderDraft] = useState(null);
   const [planillasDueItems, setPlanillasDueItems] = useState([]);
+  const editingPlanillasRef = useRef(false);
+  const markPlanillasEditing = useCallback((active) => {
+    editingPlanillasRef.current = active;
+  }, []);
   useEffect(() => {
     if (session?.user?.id)
       setPlanillasDueItems(getInitialPlanillasDueItems(session.user.id));
@@ -327,12 +341,15 @@ export default function App() {
         return;
       }
 
-      setRecords((data || []).map(mapClientFromSupabase));
+      setRecords((previous) => {
+        const incoming = (data || []).map(mapClientFromSupabase);
+        return unchangedData(previous, incoming) ? previous : incoming;
+      });
     }
 
     loadClients();
     const onFocus = () => {
-      if (!document.hidden) loadClients();
+      if (!document.hidden && !editingPlanillasRef.current) loadClients();
     };
     window.addEventListener('focus', onFocus);
     const timer = window.setInterval(onFocus, 120000);
@@ -371,12 +388,15 @@ export default function App() {
         return;
       }
 
-      setAccounts((data || []).map(mapAccountFromSupabase));
+      setAccounts((previous) => {
+        const incoming = (data || []).map(mapAccountFromSupabase);
+        return unchangedData(previous, incoming) ? previous : incoming;
+      });
     }
 
     loadAccounts();
     const onFocus = () => {
-      if (!document.hidden) loadAccounts();
+      if (!document.hidden && !editingPlanillasRef.current) loadAccounts();
     };
     window.addEventListener('focus', onFocus);
     const timer = window.setInterval(onFocus, 120000);
@@ -1384,15 +1404,7 @@ export default function App() {
               <div className="section-title compact">
                 <div>
                   <h2>📺 Cuentas por plataforma</h2>
-                  <p>Vista rápida de las cuentas registradas.</p>
                 </div>
-                <button
-                  className="btn btn--ghost"
-                  type="button"
-                  onClick={() => goToTab('accountList')}
-                >
-                  Ver todas
-                </button>
               </div>
 
               <div className="dashboard-platform-grid">
@@ -1448,13 +1460,6 @@ export default function App() {
                   <h2>⏰ Clientes por vencer</h2>
                   <p>Hoy, mañana o pasado mañana.</p>
                 </div>
-                <button
-                  className="btn btn--ghost"
-                  type="button"
-                  onClick={() => goToTab('clientList')}
-                >
-                  Ver todos
-                </button>
               </div>
 
               {upcomingRecords.length === 0 ? (
@@ -1496,13 +1501,6 @@ export default function App() {
                   <h2>🔐 Cuentas por vencer</h2>
                   <p>Hoy, mañana o pasado mañana.</p>
                 </div>
-                <button
-                  className="btn btn--ghost"
-                  type="button"
-                  onClick={() => goToTab('accountList')}
-                >
-                  Ver todas
-                </button>
               </div>
 
               {upcomingAccounts.length === 0 ? (
@@ -1825,6 +1823,7 @@ export default function App() {
             remoteAccounts={accounts}
             remoteClients={records}
             onReload={reloadPlanillas}
+            onEditingActiveChange={markPlanillasEditing}
             remoteLoading={remoteLoading.accounts || remoteLoading.clients}
             remoteError={[remoteErrors.accounts, remoteErrors.clients]
               .filter(Boolean)

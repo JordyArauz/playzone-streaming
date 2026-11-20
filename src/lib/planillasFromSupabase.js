@@ -1,3 +1,4 @@
+import { sharedProfilePin } from './sharedProfilePin.js';
 // Adaptador de lectura. NO realiza consultas, escrituras ni genera datos de prueba.
 // Recibe únicamente los registros ya cargados y autorizados por App.jsx (RLS).
 export const PLANILLA_SHEETS = [
@@ -159,7 +160,14 @@ export function mapSupabaseToPlanillas(accounts = [], clients = []) {
       sheet
     ];
     if (fixedSlots) members = membersWithFixedSlots(members, a.id, fixedSlots);
-    else if (sheet === 'Netflix Compartido') members = orderMembersByProfile(members);
+    else if (sheet === 'Netflix Compartido') {
+      members = orderMembersByProfile(members);
+      // Visualizacion coherente incluso si existen PIN antiguos incompletos.
+      members = members.map((member) => ({
+        ...member,
+        pin: member.pin || sharedProfilePin(members, member.profile),
+      }));
+    }
     groupedData[sheet].push({
       id: a.id,
       email: a.email || '',

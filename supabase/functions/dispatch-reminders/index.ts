@@ -201,38 +201,48 @@ Deno.serve(async (request) => {
   const tomorrow = addDay(today, 1);
   const events: Event[] = [];
 
-  // El disparo para fechas sin hora ocurre a partir de las 09:00 en Bolivia.
+  // Un unico resumen por administrador y dia, no una notificacion por cliente.
+  // Las tareas con hora siguen siendo independientes en mode=tasks.
   if (mode === 'dispatch' && hour >= 9) {
     const { data: dueAccounts, error: accountError } = await admin
       .from('accounts')
-      .select('id,owner_id,platform,type,email,subscription_end')
+      .select('id,owner_id,subscription_end')
       .not('owner_id', 'is', null)
       .in('subscription_end', [today, tomorrow])
       .limit(10000);
     if (accountError) throw accountError;
-    for (const account of dueAccounts || []) {
-      const when = account.subscription_end === today ? 'hoy' : 'mañana';
-      events.push({
-        userId: account.owner_id,
-        eventKey: `cuenta:${account.id}:${account.subscription_end}:${when}`,
-        title: `Cuenta que vence ${when}`,
-        body: `${account.platform || 'Plataforma'} ${account.type || ''} · ${account.email || 'Cuenta'}`,
-      });
-    }
     const { data: dueClients, error: clientsError } = await admin
       .from('clients')
-      .select('id,owner_id,client_name,platform,end_date')
+      .select('id,owner_id,end_date')
       .not('owner_id', 'is', null)
       .in('end_date', [today, tomorrow])
       .limit(10000);
     if (clientsError) throw clientsError;
+    const counts = new Map<string, { accountsToday: number; accountsTomorrow: number; clientsToday: number; clientsTomorrow: number }>();
+    const getCounts = (userId: string) => {
+      if (!counts.has(userId)) counts.set(userId, {
+        accountsToday: 0, accountsTomorrow: 0,
+        clientsToday: 0, clientsTomorrow: 0,
+      });
+      return counts.get(userId)!;
+    };
+    for (const account of dueAccounts || []) {
+      const current = getCounts(account.owner_id);
+      if (account.subscription_end === today) current.accountsToday += 1;
+      else current.accountsTomorrow += 1;
+    }
     for (const client of dueClients || []) {
-      const when = client.end_date === today ? 'hoy' : 'mañana';
+      const current = getCounts(client.owner_id);
+      if (client.end_date === today) current.clientsToday += 1;
+      else current.clientsTomorrow += 1;
+    }
+    for (const [userId, countsForUser] of counts) {
       events.push({
-        userId: client.owner_id,
-        eventKey: `cliente:${client.id}:${client.end_date}:${when}`,
-        title: `Cliente que vence ${when}`,
-        body: `${client.client_name || 'Cliente'} · ${client.platform || 'Streaming'}`,
+        userId,
+        // EventKey diario y unico por suscripcion/dispositivo.
+        eventKey: `resumen-v2:${today}`,
+        title: 'PlayZone · Resumen de vencimientos',
+        body: `Hoy: ${countsForUser.accountsToday} cuentas y ${countsForUser.clientsToday} clientes. Mañana: ${countsForUser.accountsTomorrow} cuentas y ${countsForUser.clientsTomorrow} clientes.`,
       });
     }
   }
@@ -241,43 +251,29 @@ Deno.serve(async (request) => {
   // Solo tareas pendientes con hora, nunca vencimientos de cuentas/clientes.
   // Ventana de recuperación de 10 min por retrasos breves del programador.
   // La clave eventKey y notification_deliveries evitan duplicados por dispositivo.
-  const tenMinutes = 10 * 60 * 1000;
-  const oneDay = 24 * 60 * 60 * 1000;
-  const rangeStart = new Date(
-    now.getTime() - (mode === 'tasks' ? tenMinutes : oneDay),
-  ).toISOString();
-  const rangeEnd = new Date(
-    now.getTime() + (mode === 'tasks' ? 0 : oneDay),
-  ).toISOString();
-  const { data: tasks, error: taskError } = await admin
-    .from('reminders')
-    .select('id,user_id,kind,title,due_at')
-    .eq('status', 'pendiente')
-    .not('due_at', 'is', null)
-    .gte('due_at', rangeStart)
-    .lte('due_at', rangeEnd)
-    .limit(10000);
-  if (taskError) throw taskError;
-  for (const task of tasks || []) {
-    const due = Date.parse(task.due_at);
-    const millisUntil = due - now.getTime();
-    // Se notifica a la hora elegida (o hasta 10 min más tarde si hubo retraso).
-    // El cron de resumen diario conserva, además, el aviso de 24 horas antes.
-    const isDueNow =
-      millisUntil <= 0 &&
-      millisUntil >= -(mode === 'tasks' ? tenMinutes : oneDay);
-    const isTomorrow =
-      mode === 'dispatch' &&
-      millisUntil >= 23 * 60 * 60 * 1000 &&
-      millisUntil <= oneDay;
-    if (!isDueNow && !isTomorrow) continue;
-    const offset = isDueNow ? 'vence' : 'antes';
-    events.push({
-      userId: task.user_id,
-      eventKey: `tarea:${task.id}:${task.due_at}:${offset}`,
-      title: isDueNow ? 'PlayZone · Tarea programada' : 'Recordatorio para mañana',
-      body: task.title,
-    });
+  if (mode === 'tasks') {
+    const tenMinutes = 10 * 60 * 1000;
+    const rangeStart = new Date(now.getTime() - tenMinutes).toISOString();
+    const rangeEnd = now.toISOString();
+    const { data: tasks, error: taskError } = await admin
+      .from('reminders')
+      .select('id,user_id,kind,title,due_at')
+      .eq('status', 'pendiente')
+      .not('due_at', 'is', null)
+      .gte('due_at', rangeStart)
+      .lte('due_at', rangeEnd)
+      .limit(10000);
+    if (taskError) throw taskError;
+    for (const task of tasks || []) {
+      const due = Date.parse(task.due_at);
+      if (!Number.isFinite(due) || due > now.getTime() || due < now.getTime() - tenMinutes) continue;
+      events.push({
+        userId: task.user_id,
+        eventKey: `tarea:${task.id}:${task.due_at}:vence`,
+        title: 'PlayZone · Tarea programada',
+        body: task.title,
+      });
+    }
   }
 
   // No enviar a dispositivos de otros usuarios.

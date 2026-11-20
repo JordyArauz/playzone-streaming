@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import netflixLogo from '../assets/brands/netflix.jpg';
 import primeVideoLogo from '../assets/brands/prime-video.webp';
 import hboMaxLogo from '../assets/brands/hbo-max.png';
@@ -15,6 +16,7 @@ import {
 } from '../lib/planillasRenewal';
 import { mapSupabaseToPlanillas } from '../lib/planillasFromSupabase';
 import { supabase } from '../lib/supabaseClient';
+import { sharedProfilePin } from '../lib/sharedProfilePin';
 import {
   createAccount,
   createClient,
@@ -22,6 +24,7 @@ import {
   editClient,
   editProfileGroup,
   deleteClient,
+  deleteSharedClientPreservingPin,
   deleteAccount,
 } from '../lib/planillasWrite';
 
@@ -74,6 +77,323 @@ export function getInitialPlanillasDueItems() {
   return []; // ReminderCenter ya calcula los vencimientos desde App / Supabase.
 }
 
+const PlanillasEditContext = createContext(null);
+
+function sameEditingCell(first, second) {
+    return (
+      first?.type === second?.type &&
+      first?.accountId === second?.accountId &&
+      first?.memberId === second?.memberId &&
+      first?.field === second?.field
+    );
+  }
+
+function EditableAccountValue({ account, field }) {
+  const { editing, readOnly, setEditing, commitCellOnKey, saveCell } = useContext(PlanillasEditContext);
+  const cell = { type: 'account', accountId: account.id, field };
+  if (sameEditingCell(editing, cell))
+    return (
+      <input
+        className="planilla-cell-input"
+        autoFocus
+        defaultValue={account[field] ?? ''}
+        onKeyDown={(e) =>
+          commitCellOnKey(e, account, null, field, cell, 'account')
+        }
+        onBlur={(e) => {
+          if (e.currentTarget.dataset.skipCommit !== 'true')
+            saveCell(account, null, field, e.currentTarget.value, cell);
+        }}
+      />
+    );
+  return (
+    <span
+      className="planilla-editable-text"
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Clic para editar y guardar al salir"
+    >
+      {account[field] || '-'}
+    </span>
+  );
+}
+
+function EditableMemberValue({ account, member, field }) {
+  const { editing, readOnly, setEditing, commitCellOnKey, saveCell } = useContext(PlanillasEditContext);
+  const cell = {
+    type: 'member',
+    accountId: account.id,
+    memberId: member.id,
+    field,
+  };
+  if (sameEditingCell(editing, cell))
+    return (
+      <input
+        className="planilla-cell-input"
+        autoFocus
+        defaultValue={member[field] ?? ''}
+        onKeyDown={(e) =>
+          commitCellOnKey(e, account, member, field, cell, 'member')
+        }
+        onBlur={(e) => {
+          if (e.currentTarget.dataset.skipCommit !== 'true')
+            saveCell(account, member, field, e.currentTarget.value, cell);
+        }}
+      />
+    );
+  return (
+    <span
+      className="planilla-editable-text"
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Clic para editar y guardar al salir"
+    >
+      {field === 'note' ? member[field] || '' : member[field] || '-'}
+    </span>
+  );
+}
+
+function ContactWithWhatsApp({ account, member }) {
+  const number = normalizeWhatsAppNumber(member.contact);
+
+  return (
+    <div className="planilla-contact-content">
+      <div className="planilla-contact-editor">
+        <EditableMemberValue
+          account={account}
+          member={member}
+          field="contact"
+        />
+      </div>
+
+      {number && (
+        <a
+          className="planilla-whatsapp-link"
+          href={getWhatsAppChatUrl(number)}
+          target={isLinuxDesktop() ? undefined : '_blank'}
+          rel="noopener noreferrer"
+          title={`Abrir chat en WhatsApp Business con ${member.name || number}`}
+          aria-label={`Abrir WhatsApp Business con ${member.name || number}`}
+        >
+          <img src={whatsappLogo} alt="" aria-hidden="true" />
+        </a>
+      )}
+    </div>
+  );
+}
+
+function EditableProfileGroupValue({ account, members }) {
+  const { editing, readOnly, setEditing, commitCellOnKey, saveGroup } = useContext(PlanillasEditContext);
+  const firstMember = members[0];
+  const cell = {
+    type: 'profile-group',
+    accountId: account.id,
+    memberId: firstMember.id,
+    field: 'profile',
+  };
+  if (sameEditingCell(editing, cell))
+    return (
+      <input
+        className="planilla-cell-input"
+        autoFocus
+        defaultValue={firstMember.profile ?? ''}
+        onKeyDown={(e) =>
+          commitCellOnKey(
+            e,
+            account,
+            firstMember,
+            'profile',
+            cell,
+            'member',
+            members,
+          )
+        }
+        onBlur={(e) => {
+          if (e.currentTarget.dataset.skipCommit !== 'true')
+            saveGroup(members, 'profile', e.currentTarget.value);
+        }}
+      />
+    );
+  return (
+    <span
+      className="planilla-editable-text"
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Editar perfil compartido"
+    >
+      {firstMember.profile || '-'}
+    </span>
+  );
+}
+
+function EditablePinGroupValue({ account, members }) {
+  const { editing, readOnly, setEditing, commitCellOnKey, saveGroup } = useContext(PlanillasEditContext);
+  const firstMember = members[0];
+  const cell = {
+    type: 'pin-group',
+    accountId: account.id,
+    memberId: firstMember.id,
+    field: 'pin',
+  };
+  if (sameEditingCell(editing, cell))
+    return (
+      <input
+        className="planilla-cell-input"
+        autoFocus
+        defaultValue={firstMember.pin ?? ''}
+        onKeyDown={(e) =>
+          commitCellOnKey(
+            e,
+            account,
+            firstMember,
+            'pin',
+            cell,
+            'member',
+            members,
+          )
+        }
+        onBlur={(e) => {
+          if (e.currentTarget.dataset.skipCommit !== 'true')
+            saveGroup(members, 'pin', e.currentTarget.value);
+        }}
+      />
+    );
+  return (
+    <span
+      className="planilla-editable-text"
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Editar PIN compartido"
+    >
+      {firstMember.pin || '-'}
+    </span>
+  );
+}
+
+function StatusValue({ account, member = null }) {
+  const { editing, readOnly, setEditing, changePaidStatus, todayISO } = useContext(PlanillasEditContext);
+  const value = effectiveStatus(
+    member || account,
+    member ? 'member' : 'account',
+    todayISO,
+  );
+
+  const cell = member
+    ? {
+        type: 'member',
+        accountId: account.id,
+        memberId: member.id,
+        field: 'status',
+      }
+    : {
+        type: 'account',
+        accountId: account.id,
+        field: 'status',
+      };
+
+  const isEditing = sameEditingCell(editing, cell);
+
+  function changeStatus(event) {
+    changePaidStatus(account, member, event.target.value);
+    setEditing(null);
+  }
+
+  if (isEditing) {
+    return (
+      <select
+        className="planilla-status-select"
+        autoFocus
+        value={value}
+        onChange={changeStatus}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setEditing(null);
+        }}
+        onBlur={() =>
+          setEditing((current) =>
+            sameEditingCell(current, cell) ? null : current,
+          )
+        }
+      >
+        <option value="Habilitado">Habilitado</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="Deshabilitado">Deshabilitado</option>
+      </select>
+    );
+  }
+
+  const statusClass = value.toLowerCase().replaceAll(' ', '-');
+
+  return (
+    <button
+      type="button"
+      className={`planilla-status planilla-status--${statusClass}`}
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Clic para cambiar estado"
+    >
+      {value}
+    </button>
+  );
+}
+
+function splitStackedValue(value) {
+  return String(value ?? '')
+    .split(/\s*\|\s*|\n+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function EditableStackedMemberValue({ account, member, field }) {
+  const { editing, readOnly, setEditing, commitCellOnKey, saveCell } = useContext(PlanillasEditContext);
+  const cell = {
+    type: 'member',
+    accountId: account.id,
+    memberId: member.id,
+    field,
+  };
+  if (sameEditingCell(editing, cell))
+    return (
+      <input
+        className="planilla-cell-input"
+        autoFocus
+        defaultValue={member[field] ?? ''}
+        placeholder="Separa varios datos con |"
+        onKeyDown={(e) =>
+          commitCellOnKey(e, account, member, field, cell, 'member')
+        }
+        onBlur={(e) => {
+          if (e.currentTarget.dataset.skipCommit !== 'true')
+            saveCell(account, member, field, e.currentTarget.value, cell);
+        }}
+      />
+    );
+  const items = splitStackedValue(member[field]);
+  return (
+    <div
+      className="chatgpt-stacked-display"
+      onClick={() => {
+        if (!readOnly) setEditing(cell);
+      }}
+      title="Clic para editar. Separa varios datos con |"
+    >
+      {(items.length ? items : ['-']).map((item, index) => (
+        <div
+          className="chatgpt-stacked-item"
+          key={`${member.id}-${field}-${index}`}
+        >
+          {item}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 export default function Planillas({
   onOpenMenu,
   onCreateReminder,
@@ -85,6 +405,7 @@ export default function Planillas({
   remoteLoading = false,
   remoteError = '',
   onReload,
+  onEditingActiveChange,
 }) {
   // No editar si Supabase no cargó los registros o hay una operación pendiente.
   const [busy, setBusy] = useState(false);
@@ -112,6 +433,19 @@ export default function Planillas({
   const [validationError, setValidationError] = useState(null);
 
   useEffect(() => {
+    onEditingActiveChange?.(Boolean(editing) || busy);
+    return () => onEditingActiveChange?.(false);
+  }, [Boolean(editing), busy, onEditingActiveChange]);
+
+  // Los menus de estado via portal se cierran cuando la pagina se desplaza.
+  useEffect(() => {
+    if (!statusPicker) return undefined;
+    const close = () => setStatusPicker(null);
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
+  }, [Boolean(statusPicker)]);
+
+  useEffect(() => {
     // Permite que el estado cambie automáticamente cuando llega medianoche,
     // aun si el usuario deja PlayZone abierto durante horas.
     const refresh = () => setTodayISO(businessDateISO());
@@ -128,22 +462,31 @@ export default function Planillas({
   }, [onDueItemsChange]);
 
   async function performWrite(task, nextCell = null) {
-    if (busyRef.current || remoteLoading || remoteError) return;
+    if (busyRef.current || remoteLoading || remoteError) {
+      setValidationError('Hay un guardado en curso o los datos todavía no están disponibles. Reintenta cuando termine.');
+      return null;
+    }
     busyRef.current = true;
     setBusy(true);
     setValidationError(null);
     try {
       const result = await task();
-      await onReload(); // Una nueva lectura determina lo que se muestra, nunca una copia local.
-      setEditing(nextCell);
+      // La escritura y la relectura son operaciones diferentes. Si la relectura
+      // falla, NUNCA afirmar que no se guardó: Supabase ya confirmó la escritura.
+      try {
+        await onReload();
+        setEditing(nextCell);
+      } catch (reloadError) {
+        setValidationError(`Guardado en Supabase, pero falló la actualización visual: ${reloadError.message}. Recarga la página para verificar.`);
+        setEditing(null);
+      }
       return result;
     } catch (error) {
       setValidationError(`No se guardó el cambio: ${error.message}`);
-      // Recargar tras un fallo evita ocultar escrituras parciales en los grupos.
       try {
         await onReload();
       } catch {
-        /* El mensaje original se mantiene */
+        /* Mostrar el error de escritura original. */
       }
       setEditing(null);
       return null;
@@ -379,7 +722,15 @@ export default function Planillas({
       profile = entered;
     }
     const created = await performWrite(() =>
-      createClient(supabase, userId, activeSheet, account, name, profile),
+      createClient(
+        supabase, userId, activeSheet, account, name, profile,
+        activeSheet === 'Netflix Compartido'
+          ? sharedProfilePin(
+              remoteClients.filter((client) => client.accountId === accountId),
+              profile,
+            )
+          : '',
+      ),
     );
     if (created?.id) {
       setSearch('');
@@ -410,7 +761,16 @@ export default function Planillas({
       setPendingDelete(null);
       return;
     }
-    performWrite(() => deleteClient(supabase, userId, member));
+    performWrite(() =>
+      activeSheet === 'Netflix Compartido'
+        ? deleteSharedClientPreservingPin(
+            supabase,
+            userId,
+            member,
+            remoteClients.filter((client) => client.accountId === accountId),
+          )
+        : deleteClient(supabase, userId, member),
+    );
     setPendingDelete(null);
   }
 
@@ -429,14 +789,6 @@ export default function Planillas({
     );
   }
 
-  function sameEditingCell(first, second) {
-    return (
-      first?.type === second?.type &&
-      first?.accountId === second?.accountId &&
-      first?.memberId === second?.memberId &&
-      first?.field === second?.field
-    );
-  }
 
   function getMembersForRender(account) {
     const isNetflixShared = activeSheet === 'Netflix Compartido';
@@ -622,305 +974,6 @@ export default function Planillas({
     });
   }, [groupedData, activeSheet, search]);
 
-  function EditableAccountValue({ account, field }) {
-    const cell = { type: 'account', accountId: account.id, field };
-    if (sameEditingCell(editing, cell))
-      return (
-        <input
-          className="planilla-cell-input"
-          autoFocus
-          defaultValue={account[field] ?? ''}
-          onKeyDown={(e) =>
-            commitCellOnKey(e, account, null, field, cell, 'account')
-          }
-          onBlur={(e) => {
-            if (e.currentTarget.dataset.skipCommit !== 'true')
-              saveCell(account, null, field, e.currentTarget.value, cell);
-          }}
-        />
-      );
-    return (
-      <span
-        className="planilla-editable-text"
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Clic para editar y guardar al salir"
-      >
-        {account[field] || '-'}
-      </span>
-    );
-  }
-
-  function EditableMemberValue({ account, member, field }) {
-    const cell = {
-      type: 'member',
-      accountId: account.id,
-      memberId: member.id,
-      field,
-    };
-    if (sameEditingCell(editing, cell))
-      return (
-        <input
-          className="planilla-cell-input"
-          autoFocus
-          defaultValue={member[field] ?? ''}
-          onKeyDown={(e) =>
-            commitCellOnKey(e, account, member, field, cell, 'member')
-          }
-          onBlur={(e) => {
-            if (e.currentTarget.dataset.skipCommit !== 'true')
-              saveCell(account, member, field, e.currentTarget.value, cell);
-          }}
-        />
-      );
-    return (
-      <span
-        className="planilla-editable-text"
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Clic para editar y guardar al salir"
-      >
-        {field === 'note' ? member[field] || '' : member[field] || '-'}
-      </span>
-    );
-  }
-
-  function ContactWithWhatsApp({ account, member }) {
-    const number = normalizeWhatsAppNumber(member.contact);
-
-    return (
-      <div className="planilla-contact-content">
-        <div className="planilla-contact-editor">
-          <EditableMemberValue
-            account={account}
-            member={member}
-            field="contact"
-          />
-        </div>
-
-        {number && (
-          <a
-            className="planilla-whatsapp-link"
-            href={getWhatsAppChatUrl(number)}
-            target={isLinuxDesktop() ? undefined : '_blank'}
-            rel="noopener noreferrer"
-            title={`Abrir chat en WhatsApp Business con ${member.name || number}`}
-            aria-label={`Abrir WhatsApp Business con ${member.name || number}`}
-          >
-            <img src={whatsappLogo} alt="" aria-hidden="true" />
-          </a>
-        )}
-      </div>
-    );
-  }
-
-  function EditableProfileGroupValue({ account, members }) {
-    const firstMember = members[0];
-    const cell = {
-      type: 'profile-group',
-      accountId: account.id,
-      memberId: firstMember.id,
-      field: 'profile',
-    };
-    if (sameEditingCell(editing, cell))
-      return (
-        <input
-          className="planilla-cell-input"
-          autoFocus
-          defaultValue={firstMember.profile ?? ''}
-          onKeyDown={(e) =>
-            commitCellOnKey(
-              e,
-              account,
-              firstMember,
-              'profile',
-              cell,
-              'member',
-              members,
-            )
-          }
-          onBlur={(e) => {
-            if (e.currentTarget.dataset.skipCommit !== 'true')
-              saveGroup(members, 'profile', e.currentTarget.value);
-          }}
-        />
-      );
-    return (
-      <span
-        className="planilla-editable-text"
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Editar perfil compartido"
-      >
-        {firstMember.profile || '-'}
-      </span>
-    );
-  }
-
-  function EditablePinGroupValue({ account, members }) {
-    const firstMember = members[0];
-    const cell = {
-      type: 'pin-group',
-      accountId: account.id,
-      memberId: firstMember.id,
-      field: 'pin',
-    };
-    if (sameEditingCell(editing, cell))
-      return (
-        <input
-          className="planilla-cell-input"
-          autoFocus
-          defaultValue={firstMember.pin ?? ''}
-          onKeyDown={(e) =>
-            commitCellOnKey(
-              e,
-              account,
-              firstMember,
-              'pin',
-              cell,
-              'member',
-              members,
-            )
-          }
-          onBlur={(e) => {
-            if (e.currentTarget.dataset.skipCommit !== 'true')
-              saveGroup(members, 'pin', e.currentTarget.value);
-          }}
-        />
-      );
-    return (
-      <span
-        className="planilla-editable-text"
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Editar PIN compartido"
-      >
-        {firstMember.pin || '-'}
-      </span>
-    );
-  }
-
-  function StatusValue({ account, member = null }) {
-    const value = effectiveStatus(
-      member || account,
-      member ? 'member' : 'account',
-      todayISO,
-    );
-
-    const cell = member
-      ? {
-          type: 'member',
-          accountId: account.id,
-          memberId: member.id,
-          field: 'status',
-        }
-      : {
-          type: 'account',
-          accountId: account.id,
-          field: 'status',
-        };
-
-    const isEditing = sameEditingCell(editing, cell);
-
-    function changeStatus(event) {
-      changePaidStatus(account, member, event.target.value);
-      setEditing(null);
-    }
-
-    if (isEditing) {
-      return (
-        <select
-          className="planilla-status-select"
-          autoFocus
-          value={value}
-          onChange={changeStatus}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') setEditing(null);
-          }}
-          onBlur={() =>
-            setEditing((current) =>
-              sameEditingCell(current, cell) ? null : current,
-            )
-          }
-        >
-          <option value="Habilitado">Habilitado</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Deshabilitado">Deshabilitado</option>
-        </select>
-      );
-    }
-
-    const statusClass = value.toLowerCase().replaceAll(' ', '-');
-
-    return (
-      <button
-        type="button"
-        className={`planilla-status planilla-status--${statusClass}`}
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Clic para cambiar estado"
-      >
-        {value}
-      </button>
-    );
-  }
-
-  function splitStackedValue(value) {
-    return String(value ?? '')
-      .split(/\s*\|\s*|\n+/)
-      .map((part) => part.trim())
-      .filter(Boolean);
-  }
-
-  function EditableStackedMemberValue({ account, member, field }) {
-    const cell = {
-      type: 'member',
-      accountId: account.id,
-      memberId: member.id,
-      field,
-    };
-    if (sameEditingCell(editing, cell))
-      return (
-        <input
-          className="planilla-cell-input"
-          autoFocus
-          defaultValue={member[field] ?? ''}
-          placeholder="Separa varios datos con |"
-          onKeyDown={(e) =>
-            commitCellOnKey(e, account, member, field, cell, 'member')
-          }
-          onBlur={(e) => {
-            if (e.currentTarget.dataset.skipCommit !== 'true')
-              saveCell(account, member, field, e.currentTarget.value, cell);
-          }}
-        />
-      );
-    const items = splitStackedValue(member[field]);
-    return (
-      <div
-        className="chatgpt-stacked-display"
-        onClick={() => {
-          if (!readOnly) setEditing(cell);
-        }}
-        title="Clic para editar. Separa varios datos con |"
-      >
-        {(items.length ? items : ['-']).map((item, index) => (
-          <div
-            className="chatgpt-stacked-item"
-            key={`${member.id}-${field}-${index}`}
-          >
-            {item}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   function MemberStatusDot({ account, member }) {
     const statuses = !String(member.name || '').trim() &&
       activeSheet !== 'ChatGPT Plus'
@@ -943,13 +996,21 @@ export default function Planillas({
     function togglePicker(event) {
       event.stopPropagation();
 
+      const rect = event.currentTarget.getBoundingClientRect();
+      const menuWidth = 150;
+      const menuHeight = 132;
+      const left = Math.min(
+        Math.max(8, rect.left - menuWidth - 8),
+        Math.max(8, window.innerWidth - menuWidth - 8),
+      );
+      const top = Math.min(
+        Math.max(8, rect.top + rect.height / 2 - menuHeight / 2),
+        Math.max(8, window.innerHeight - menuHeight - 8),
+      );
       setStatusPicker((current) =>
         current?.accountId === account.id && current?.memberId === member.id
           ? null
-          : {
-              accountId: account.id,
-              memberId: member.id,
-            },
+          : { accountId: account.id, memberId: member.id, left, top },
       );
     }
 
@@ -979,9 +1040,12 @@ export default function Planillas({
           }
         />
 
-        {pickerOpen && (
+        {pickerOpen && createPortal(
           <div
             className="member-status-picker"
+            style={{ left: statusPicker.left, top: statusPicker.top }}
+            role="group"
+            aria-label="Elegir estado del cliente"
             onClick={(event) => event.stopPropagation()}
           >
             {statuses.map((status) => {
@@ -1004,7 +1068,8 @@ export default function Planillas({
                 </button>
               );
             })}
-          </div>
+          </div>,
+          document.body,
         )}
       </div>
     );
@@ -1146,7 +1211,7 @@ export default function Planillas({
     const totalPayments = sumChatGPTPayments(account);
 
     return (
-      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={`${account.id}:${search}`}>
+      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={account.id}>
         <div
           className="planilla-table-scroll"
           role="region"
@@ -1240,7 +1305,7 @@ export default function Planillas({
 
               return (
                 <tr
-                  key={`${member.id}:${search}`}
+                  key={member.id}
                   className={isSearchMatch ? 'planilla-row-match' : ''}
                 >
                   <td className="chatgpt-name-cell planilla-name-cell">
@@ -1378,7 +1443,7 @@ export default function Planillas({
     const membersForRender = getMembersForRender(account);
 
     return (
-      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={`${account.id}:${search}`}>
+      <div className={`planilla-account-block ${accountMatchesSearch(account) ? 'planilla-account-match' : ''}`} key={account.id}>
         <div
           className="planilla-table-scroll"
           role="region"
@@ -1468,7 +1533,7 @@ export default function Planillas({
 
                 return (
                   <tr
-                    key={`${member.id}:${search}`}
+                    key={member.id}
                     className={isSearchMatch ? 'planilla-row-match' : ''}
                   >
                     <td className="planilla-name-cell">
@@ -1590,7 +1655,12 @@ export default function Planillas({
     );
   }
 
+  const editTools = {
+    editing, readOnly, setEditing, commitCellOnKey, saveCell, saveGroup,
+    changePaidStatus, todayISO,
+  };
   return (
+    <PlanillasEditContext.Provider value={editTools}>
     <main className="page-grid page-grid--stacked planillas-page">
       <section className="panel panel--wide planillas-panel">
         <div className="planillas-topbar">
@@ -1749,5 +1819,6 @@ export default function Planillas({
         </div>
       </section>
     </main>
+    </PlanillasEditContext.Provider>
   );
 }

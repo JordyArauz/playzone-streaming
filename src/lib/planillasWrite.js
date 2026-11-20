@@ -1,3 +1,4 @@
+import { profileKey, sharedProfilePin } from './sharedProfilePin.js';
 import { validateContact, validateDateRange } from './planillasValidation.js';
 
 // Mapeo de campos permitido explícitamente; nunca enviamos todo el objeto del navegador.
@@ -85,7 +86,7 @@ export async function createAccount(db, userId, sheet, email) {
   const row = { id: crypto.randomUUID(), platform, type, email: asNullable(email), status: 'Pendiente', owner_id: userId, created_at: stamp, updated_at: stamp };
   return currentRow(await db.from('accounts').insert(row).select('id').single());
 }
-export async function createClient(db, userId, sheet, account, name, profile = '') {
+export async function createClient(db, userId, sheet, account, name, profile = '', inheritedPin = '') {
   requiredAdmin(userId);
   if (!String(name ?? '').trim()) throw new Error('Es necesario escribir el nombre del cliente.');
   const [platform] = sheetPlatform(sheet);
@@ -94,7 +95,7 @@ export async function createClient(db, userId, sheet, account, name, profile = '
     id: crypto.randomUUID(), created_at: stamp, updated_at: stamp,
     account_id: account.id, platform, client_name: String(name).trim(),
     profile_name: sheet === 'ChatGPT Plus' ? null : asNullable(profile),
-    pin: null, contact: null, status: 'Pendiente', owner_id: userId,
+    pin: sheet === 'Netflix Compartido' ? asNullable(inheritedPin) : null, contact: null, status: 'Pendiente', owner_id: userId,
     payment_method: 'Sin especificar', payment_status: 'Sin verificar',
   };
   return currentRow(await db.from('clients').insert(row).select('id').single());
@@ -126,6 +127,37 @@ export async function editProfileGroup(db, userId, members, field, value) {
 export async function deleteClient(db, userId, member) {
   requiredAdmin(userId);
   return currentRow(await db.from('clients').delete().eq('id', member.id).eq('owner_id', userId).select('id').maybeSingle());
+}
+/**
+ * Antes de eliminar un cliente compartido, conserva el PIN para los demas
+ * clientes de ese mismo perfil y cuenta. Nunca reemplaza PIN no vacios.
+ * Si falla la actualizacion de respaldo, la eliminacion NO se ejecuta.
+ */
+export async function deleteSharedClientPreservingPin(db, userId, member, accountMembers) {
+  requiredAdmin(userId);
+  const ownProfile = profileKey(member.profileName);
+  const peers = (accountMembers || []).filter((candidate) =>
+    candidate.id !== member.id &&
+    candidate.accountId === member.accountId &&
+    profileKey(candidate.profileName) === ownProfile,
+  );
+  if (ownProfile && peers.length) {
+    const pin = sharedProfilePin([member, ...peers], member.profileName);
+    const blanks = peers.filter((candidate) => !String(candidate.pin ?? '').trim());
+    if (pin && blanks.length) {
+      const ids = blanks.map((candidate) => candidate.id);
+      const response = await db.from('clients')
+        .update({ pin, updated_at: new Date().toISOString() })
+        .eq('account_id', member.accountId)
+        .eq('owner_id', userId)
+        .in('id', ids).select('id');
+      failIf(response.error);
+      if ((response.data || []).length !== ids.length) {
+        throw new Error('No se pudo conservar el PIN del perfil. No se eliminó el cliente.');
+      }
+    }
+  }
+  return deleteClient(db, userId, member);
 }
 export async function deleteAccount(db, userId, account, clients) {
   requiredAdmin(userId);
